@@ -1,0 +1,16 @@
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES('JNE','jne',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES('POS','pos',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES('TIKI','tiki',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES('WAHANA','wahana',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES('JNT','jnt',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('RPX','rpx',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('SAP','sap',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('SICEPAT','sicepat',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('PCP','pcp',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('JET','jet',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('DSE','dse',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('FIRST','first',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('NINJA','ninja',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('LION','lion',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('IDL','idl',NOW(),NOW());
+INSERT INTO "Couriers" (id,name,"createdAt","updatedAt") VALUES ('REX','rex',NOW(),NOW());

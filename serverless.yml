@@ -1,0 +1,27 @@
+service: storas-api
+
+plugins:
+  - serverless-domain-manager
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: production
+  region: ap-southeast-1
+
+custom:
+  customDomain:
+    domainName: api.storas.id
+    basePath: ''
+    stage: production
+    createRoute53Record: true
+
+functions:
+  app:
+    memorySize: 128
+    handler: app.handler
+    events:
+      - http: ANY /
+      - http: 'ANY {proxy+}'
+    environment:
+      NODE_ENV: 'production'

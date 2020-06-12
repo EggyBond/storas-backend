@@ -1,0 +1,21 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "root",
+    "database": "storas_backend",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "staging": {
+    "dialect": "postgres",
+    "operatorsAliases": false,
+    "use_env_variable": "DATABASE_URL"
+  },
+  "production": {
+    "username": "storas_app",
+    "password": "Fi9WH3m4kamFk7OgqS6S",
+    "database": "storas",
+    "host": "storas-postgres.cgmherlisprz.ap-southeast-1.rds.amazonaws.com",
+    "dialect": "postgres"
+  }
+}

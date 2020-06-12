@@ -1,0 +1,38 @@
+{
+  "development": {
+    "type": "service_account",
+    "project_id": "storas-stg",
+    "private_key_id": "64ea3b9ff2c89b3cc4544703ae2a93b74768e14e",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDLb3xx4Rx4UZ13\nI7yjDqmRUH7f069swv5un/TnIqN+b8W9TuHLHUw1cpqCuKGvtTjikaWwujp4rSCG\nF5sHxJSz+XB/vse+Wvh3lrEh/vxjMAu22fZpiTWKIDOTENX+fFoQd3i22S9mSO82\nfs3ppcxrJzhKSb+QhtEqbniTn8bKJXuHmQ9tKW2czg4pJsHO+Igi+EDZ8wb0brAt\nTygg0BHRQUFuUrJf215GtH/rpneyn1IBzNSZhfTH79ZCdBGFUtH+2jDH0BfXNPaf\n2z29KXBKOj0iu1X/vFt/SQWR9O6cE5lWkIpWYiizwK9hL5KNiRy5/es2FkLi3k8Y\njGz2zUkNAgMBAAECggEAAvkHf+vKEjcgMXGMBNCyWqV8h1M//Jh5xlc/l/cSHbuO\n2zhKGcE9QVqB9oIO0ypaL5Z8ok5bdHjOdaLO8abMEJVkJYG9yE52dsQu6xjZkFFP\nX5pvsQ9ipAogJs/JN0yqKp/jlaafdo9QvQVxnpdl4QCclKYN4EKQFUc95Y5bYuUU\nLcwXEJ3IVoJv9QRQMK++rwmBy5LZbUBQ4332xtlnW2mturKzf5PQcT0mFVOINDMc\n2uNkfL8sjM0esYVwaNFdNa/nXDZNWgUqDG/PGj6Ef+siICeamFQ9196MRPY6amnR\n0ir8mjBLd/b8Ob2WnkMxgv3p1hcWAkPo0D++QWw1AwKBgQD3k/rBZFgNFU3efNxq\nUnrX2Zu1j+ld96tcE2Ejmj4A/YQli0rsIrp5iJRYcXWd5N85751V9rDQ65dc5BAh\nN3HpggrR0oalPpu/acoI6nU35FJ+Lv48K+3uPWHzTv3o7O8E7R58X2moBpPoi7wZ\nKOrhFzRnRD0YKLbUNl6bBgjPzwKBgQDSWxfuqH4cAdTx/BiKwv5isM8VZSfUb2Y6\n5EBmRBt+fHz6DmPV0HF7nTKSyRcI8lkm7k/JpAEntPgGQMrrxrpMaYJJjepKsUvb\n6MRbEiiU6tVNPj7KNeetnRKw8fhRkB7RiFKof0dg4cl3y3oDMiV+FhqRr5/QaljQ\ng8QlP7tUYwKBgQCjbxWGmvYhVOH9sJFUwrQDT8yhc6oLdRazBrwGY6jwwGp+2lAQ\nR/CvkADVzbhmDhNqTIqhl+MrV4qpMIiRVOemzUjVMFPgO89W8cAEWLoetmPalq0Q\nDbPYpL7HfmrRW6+BogKQ+e9mk0kKp0v5k/BRvR7D2OE31JC00FttnPMuMwKBgQCY\nF8cZBviPlX97K1QvWEeH4eEIzifbQGSBJjGt/4aFkMroHelvWhQDVaiQWxbtoBR3\nwo0r9QnkxMMj+kr96KUgxJSwTAzfzotTyFvYoSt4aMaq39uUZx9I9y3hhEKP7o1p\n4JArRkO8t+PsWtGwZ9yV6rNxLLN3hL0Mnoj+ibMPkwKBgCQLZ3JVmymYkGHb8nUN\nKzJMPhJ+MA4WveMtN2NVIlsF8aAP/bwdKP17xUmRQOg/XwmeoTbZO3NNYuj5EgDr\njam6gEi/r+qv4cafiFFdPOZ3GiFtGlw/eDAiKiy7wjVLzY8AL8hOdeEcvc4DHMds\nLpvFRYT4fGstO4LUathHmYvC\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-nogyf@storas-stg.iam.gserviceaccount.com",
+    "client_id": "102634008070386201526",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-nogyf%40storas-stg.iam.gserviceaccount.com"
+  },
+  "staging": {
+    "type": "service_account",
+    "project_id": "storas-stg",
+    "private_key_id": "64ea3b9ff2c89b3cc4544703ae2a93b74768e14e",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDLb3xx4Rx4UZ13\nI7yjDqmRUH7f069swv5un/TnIqN+b8W9TuHLHUw1cpqCuKGvtTjikaWwujp4rSCG\nF5sHxJSz+XB/vse+Wvh3lrEh/vxjMAu22fZpiTWKIDOTENX+fFoQd3i22S9mSO82\nfs3ppcxrJzhKSb+QhtEqbniTn8bKJXuHmQ9tKW2czg4pJsHO+Igi+EDZ8wb0brAt\nTygg0BHRQUFuUrJf215GtH/rpneyn1IBzNSZhfTH79ZCdBGFUtH+2jDH0BfXNPaf\n2z29KXBKOj0iu1X/vFt/SQWR9O6cE5lWkIpWYiizwK9hL5KNiRy5/es2FkLi3k8Y\njGz2zUkNAgMBAAECggEAAvkHf+vKEjcgMXGMBNCyWqV8h1M//Jh5xlc/l/cSHbuO\n2zhKGcE9QVqB9oIO0ypaL5Z8ok5bdHjOdaLO8abMEJVkJYG9yE52dsQu6xjZkFFP\nX5pvsQ9ipAogJs/JN0yqKp/jlaafdo9QvQVxnpdl4QCclKYN4EKQFUc95Y5bYuUU\nLcwXEJ3IVoJv9QRQMK++rwmBy5LZbUBQ4332xtlnW2mturKzf5PQcT0mFVOINDMc\n2uNkfL8sjM0esYVwaNFdNa/nXDZNWgUqDG/PGj6Ef+siICeamFQ9196MRPY6amnR\n0ir8mjBLd/b8Ob2WnkMxgv3p1hcWAkPo0D++QWw1AwKBgQD3k/rBZFgNFU3efNxq\nUnrX2Zu1j+ld96tcE2Ejmj4A/YQli0rsIrp5iJRYcXWd5N85751V9rDQ65dc5BAh\nN3HpggrR0oalPpu/acoI6nU35FJ+Lv48K+3uPWHzTv3o7O8E7R58X2moBpPoi7wZ\nKOrhFzRnRD0YKLbUNl6bBgjPzwKBgQDSWxfuqH4cAdTx/BiKwv5isM8VZSfUb2Y6\n5EBmRBt+fHz6DmPV0HF7nTKSyRcI8lkm7k/JpAEntPgGQMrrxrpMaYJJjepKsUvb\n6MRbEiiU6tVNPj7KNeetnRKw8fhRkB7RiFKof0dg4cl3y3oDMiV+FhqRr5/QaljQ\ng8QlP7tUYwKBgQCjbxWGmvYhVOH9sJFUwrQDT8yhc6oLdRazBrwGY6jwwGp+2lAQ\nR/CvkADVzbhmDhNqTIqhl+MrV4qpMIiRVOemzUjVMFPgO89W8cAEWLoetmPalq0Q\nDbPYpL7HfmrRW6+BogKQ+e9mk0kKp0v5k/BRvR7D2OE31JC00FttnPMuMwKBgQCY\nF8cZBviPlX97K1QvWEeH4eEIzifbQGSBJjGt/4aFkMroHelvWhQDVaiQWxbtoBR3\nwo0r9QnkxMMj+kr96KUgxJSwTAzfzotTyFvYoSt4aMaq39uUZx9I9y3hhEKP7o1p\n4JArRkO8t+PsWtGwZ9yV6rNxLLN3hL0Mnoj+ibMPkwKBgCQLZ3JVmymYkGHb8nUN\nKzJMPhJ+MA4WveMtN2NVIlsF8aAP/bwdKP17xUmRQOg/XwmeoTbZO3NNYuj5EgDr\njam6gEi/r+qv4cafiFFdPOZ3GiFtGlw/eDAiKiy7wjVLzY8AL8hOdeEcvc4DHMds\nLpvFRYT4fGstO4LUathHmYvC\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-nogyf@storas-stg.iam.gserviceaccount.com",
+    "client_id": "102634008070386201526",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-nogyf%40storas-stg.iam.gserviceaccount.com"
+  },
+  "production": {
+    "type": "service_account",
+    "project_id": "storas-prod",
+    "private_key_id": "26a7a1fc68a3f869869ea1376e83e24aade2fe4e",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCeUXRP4YjDurRy\n8M7/lCiUrb0/fZUMj6hX6AdFVNiFx4rYVGtPp1yIoh351i0SsAK3VxMDdQW3mno2\nhr9vs/3Jp0V6hXQDT53Ay58jAU1a+tiE6iCHz2DMYbkSoS3uQAiHb9riTd34KAff\ntUTsuY1X2Jf35pDc32Tda+0yo1Od98DaJSNsEOivZtR9Hc7EAXhzGOfrDvTtmUqh\nd3lIEtn4wcB/jHpVmtbEmMRTKpX46asjsD7r1ilfqEzmWlMUeS9rTzxNCltDkX+p\nkVFJvRNJutVHfSf7MGpSIz66mcewmHDhtwk2tK6MDC1EkJJvVq2WZVPFqY8OGNeq\nUZiMK9PNAgMBAAECggEALmwyD+5RHRuVKBMGj5jRIW+ki4Z2ex1wvn4SC7lqWCf/\nxZlTciLgFkx7P7QWuWEVGs+UirH4wDKy3WQ7pDSCGWxMCjYxo3roBg1vF2OdXC0r\n6iWA7nHXr3aEPzs17aOnHJem9i7hBJAwZt+PW165XGXtgcqA9dMnj2nDPtL3hN0X\n9kjqKvUXKRZqnGKjP6cPt23JJdFJsRuGyGrL/kPlMi0yTrgNE88uCrlevy2/hUZQ\nkqydkN4Ov3/PH5eUK4vZlWrqW38cCB9NNRZfSj9MfDwXv2um1tkx9jcCwIkboSCB\nm1JLbk+62YMPEHFLIq/IwIfjebqz/sPxRCkImygN/QKBgQDP6kiL2q9QV1krQpjl\nNdVWdRPtayNxDYNo+PTP3amq4G5xK7++oLInm2aemewUtfg/iN5TPtPbKfjhQDzK\nyAfb9Dbi2CldbIseX+5jdQrno4HdUX3VPjyLWNb0KxWrq6r+aGfg/SFwDyoIodaj\n4Bx2epwxHkKIaoejT4Tv0oiVRwKBgQDC7sH0zpqENnZK3IhNBf7ZE7NBqytRipJV\nLvGSSeT8+nreTvxjF/pPg3hwV/NLp8M8kQobj3CxYZKBJP5gYrdNZn1ldCqnEtxf\nca/EFhH7icKRJtr97TB/9YqtLDSyk34pnuP9GFKNdGYV1Chi6PnF7K99x0B6IWPU\nt85ygQMoSwKBgQCSOretTTASNGzthRhd1R/nf851I+44XAW5dadQ7xieqtxiUh+4\npfLG8oAZOi6VXmpr3Qpox/5e3UVCv1hCUq9cXoWfw+JL58Rsp5HVd4Mk6ZWzn9X9\nfZk9dE0yS38hT0qjRbERx1aWJsQscA6zETNTjOZ/kUXABhTBonLf7VXMjwKBgQCO\nO34ELTfrXn3Ds9Q0Nzqzk79JHCcYcT7CruUO86IEwJMkYIehml5G5Evd1R6txjQb\nnky8vVXh56rpVl/RXlYXQMAgZbm1fHqVnbM9JUlruyHfnXVOsGGiDDxqjQXKgvoc\nTlZWVwftNNBD/zCUsx+EvmVyJg+yzWg1TwRw4he2rwKBgD3S2yeWIREJmDDD2tW0\n8KYF9WlzHodescSG3QzH6pR0UjhImhsvsT1w3+eXgyKmrX9BFCTSmbMYA9uUIcyv\nX0Uiok57f4s+8wLpZp+ftCvkhepIeHxtJM5K3P8noLmep9g45Fn9p8RA0J80KbHG\n92cBdLYFlH2Ucx9PyXWhULKz\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-tnaxr@storas-prod.iam.gserviceaccount.com",
+    "client_id": "106743498953499627478",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-tnaxr%40storas-prod.iam.gserviceaccount.com"
+  }
+}
