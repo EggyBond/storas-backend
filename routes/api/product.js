@@ -46,7 +46,9 @@ router.get('/detail', async (req, res) => {
  * @desc Get product list
  * @access Public
  */
-router.get('/list', async (req, res) => {
+router.get('/list', passport.authenticate('jwt', {
+    session: false
+}),async (req, res) => {
     const warehouseType = req.query.warehouseType;
     const ownedOnly = req.query.ownedOnly || false;
     const cityIds = req.query.cityIds === undefined ? [] : req.query.cityIds.split(",");
