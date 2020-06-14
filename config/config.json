@@ -1,6 +1,6 @@
 {
   "development": {
-    "username": "postgres",
+    "username": "ubuntu",
     "password": "root",
     "database": "storas_backend",
     "host": "localhost",

@@ -127,7 +127,7 @@ router.post('/upsert', passport.authenticate('jwt', {
 
     const Pool = require('pg').Pool
     const pool = new Pool({
-        user: 'postgres',
+        user: 'ubuntu',
         host: 'localhost',
         database: 'storas_backend',
         password: 'root',
