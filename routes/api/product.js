@@ -119,12 +119,29 @@ router.post('/upsert', passport.authenticate('jwt', {
         id,
         name,
         description,
-        cityId,
         warehouseType,
         images,
         price,
-        geolocation
+        geolocation,
+        city,
+        district,
+        building_area,
+        electricity,
+        total_floor,
+        padam,
+        additional_facility
     } = req.body;
+
+    console.log(req.body)
+    console.log(user.id)
+    const Pool = require('pg').Pool
+    const pool = new Pool({
+        user: 'postgres',
+        host: 'localhost',
+        database: 'storas_backend',
+        password: 'root',
+        port: 5432,
+    })
 
     try {
         if (id) {
@@ -139,30 +156,61 @@ router.post('/upsert', passport.authenticate('jwt', {
                 });
             }
         }
-        const [record, created] = await Product.upsert({
-                id,
-                ownerId: user.id,
-                name,
-                description,
-                cityId,
-                warehouseType,
-                images,
-                price,
-                geoLng: geolocation.lng,
-                geoLat: geolocation.lat
-            },
-            {
-                returning: true
+
+        var input_query = 'INSERT INTO "Products" ("ownerId", name, description, "warehouseType", images, price, "geoLng", "geoLat", city, district, building_area, electricity, total_floor, pdam, additional_facility, "createdAt" , "updatedAt" ) VALUES ($1, $2, $3, $4 ,$5, $6 ,$7, $8 ,$9, $10, $11, $12, $13, $14 ,$15, NOW(), NOW()) returning id;';
+        var values = [
+            user.id,
+            name,
+            description,
+            warehouseType,
+            images,
+            price,
+            geolocation.lng,
+            geolocation.lat,
+            city,
+            district,
+            building_area,
+            electricity,
+            total_floor,
+            padam,
+            additional_facility
+        ]
+
+        pool.query(input_query, values, (error, results) => {
+            if (error) {
+              throw error
             }
-        );
+            console.log(results)
+
+          })
 
         return res.status(201).json({
-            result: {
-                productId: record.id
-            },
             success: true,
             errorMessage: null
         });
+        // const [record, created] = await Product.upsert({
+        //         id,
+        //         ownerId: user.id,
+        //         name,
+        //         description,
+        //         warehouseType,
+        //         images,
+        //         price,
+        //         geoLng: geolocation.lng,
+        //         geoLat: geolocation.lat
+        //     },
+        //     {
+        //         returning: true
+        //     }
+        // );
+
+        // return res.status(201).json({
+        //     result: {
+        //         productId: record.id
+        //     },
+        //     success: true,
+        //     errorMessage: null
+        // });
     } catch (e) {
         return res.status(500).json({
             result: {
