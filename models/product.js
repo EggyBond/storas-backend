@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     building_area: DataTypes.INTEGER,
     electricity: DataTypes.INTEGER,
     total_floor: DataTypes.INTEGER,
-    padm: DataTypes.INTEGER,
+    pdam: DataTypes.INTEGER,
     additional_facility: DataTypes.STRING,
     currency: DataTypes.STRING,
     active: DataTypes.BOOLEAN,

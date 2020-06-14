@@ -46,12 +46,9 @@ router.get('/detail', async (req, res) => {
  * @desc Get product list
  * @access Public
  */
-router.get('/list', passport.authenticate('jwt', {
-    session: false
-}),async (req, res) => {
+router.get('/list', async (req, res) => {
     const warehouseType = req.query.warehouseType;
     const ownedOnly = req.query.ownedOnly || false;
-    const cityIds = req.query.cityIds === undefined ? [] : req.query.cityIds.split(",");
 
     let whereQuery = {};
     if (warehouseType) {
@@ -62,34 +59,30 @@ router.get('/list', passport.authenticate('jwt', {
         whereQuery['ownerId'] = user.id;
     }
 
-    if (cityIds[0]) {
-        whereQuery['cityId'] = cityIds;
-    }
-
     const productList = await Product.findAll({
         where: whereQuery
     });
 
     const productsResult = [];
 
-    for (const product of productList) {
-        let city = await City.findByPk(product.cityId);
+    // for (const product of productList) {
+    //     let city = await City.findByPk(product.cityId);
 
-        productsResult.push(
-            {
-                id: product.id,
-                name: product.name,
-                cityName: city.name,
-                warehouseType: product.warehouseType,
-                image: product.images[0],
-                price: product.price
-            }
-        )
-    }
+    //     productsResult.push(
+    //         {
+    //             id: product.id,
+    //             name: product.name,
+    //             cityName: city.name,
+    //             warehouseType: product.warehouseType,
+    //             image: product.images[0],
+    //             price: product.price
+    //         }
+    //     )
+    // }
 
     return res.status(200).json({
         result: {
-            products: productsResult
+            products: productList
         },
         success: true,
         errorMessage: null
@@ -132,8 +125,6 @@ router.post('/upsert', passport.authenticate('jwt', {
         additional_facility
     } = req.body;
 
-    console.log(req.body)
-    console.log(user.id)
     const Pool = require('pg').Pool
     const pool = new Pool({
         user: 'postgres',
