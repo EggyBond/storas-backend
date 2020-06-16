@@ -10,7 +10,7 @@ const firebaseAdmin = require("../../services/firebaseAdmin");
 const mimeTypes = require('mimetypes');
 const {v4: UUID} = require('uuid');
 const db = require("../../models/index");
-
+const moment = require('moment'); 
 /**
  * @route GET api/app/transaction/detail
  * @desc Get transaction detail
@@ -71,10 +71,15 @@ router.get('/detail', passport.authenticate('jwt', {
             productInfo: {
                 id: product.id,
                 name: product.name,
-                cityName: product.cityId,
+                city: product.city,
                 warehouseType: product.warehouseType,
-                image: product.images[0],
-                price: product.price
+                images: product.images,
+                price: product.price,
+                description: product.description,
+                geoLocation: {
+                    lng: product.geoLng,
+                    lat: product.geoLat
+                },
             },
             paymentList
         },
@@ -129,6 +134,8 @@ router.get('/list', passport.authenticate('jwt', {
                 ownerId: trx.ownerId,
                 warehouseId: product.id,
                 warehouseName: product.name,
+                startDate: trx.start_date,
+                endDate: trx.end_date,
                 productInfo: {
                     id: product.id,
                     name: product.name,
@@ -153,11 +160,12 @@ router.get('/list', passport.authenticate('jwt', {
  * @desc Checkout Transaction
  * @access Private
  */
-router.post('/checkout', passport.authenticate('jwt', {
-    session: false
-}), async (req, res) => {
+router.post('/checkout', async (req, res) => {
     const {
-        productId
+        productId,
+        startDate,
+        endDate,
+        price
     } = req.body;
 
     const product = await Product.findByPk(productId);
@@ -175,16 +183,18 @@ router.post('/checkout', passport.authenticate('jwt', {
 
     const currentDate = new Date();
     const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
-
+    console.log("STARTDATE", moment(startDate))
     const newTrasaction = await Transaction.create({
-        customerId: user.id,
+        customerId: 2,
         ownerId: product.ownerId,
         productId: product.id,
-        status: "BOOKED",
-        totalAmount: product.price,
+        status: "NOT PAID",
+        totalAmount: price,
         decimalPoint: product.decimalPoint,
         currency: product.currency,
         expiredAt: expiryDate,
+        start_date: moment(startDate),
+        end_date: moment(endDate)
     });
 
     return res.status(201).json({

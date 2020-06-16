@@ -347,7 +347,7 @@ router.put('/update', passport.authenticate('jwt', {
             district,
             id
         ]
-
+        console.log("test",pdam)
         pool.query(update_query, values, (error, results) => {
             if (error) {
                 return res.status(400).json({

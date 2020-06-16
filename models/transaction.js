@@ -8,7 +8,9 @@ module.exports = (sequelize, DataTypes) => {
     totalAmount: DataTypes.INTEGER,
     decimalPoint: DataTypes.INTEGER,
     currency: DataTypes.STRING,
-    expiredAt: DataTypes.DATE
+    expiredAt: DataTypes.DATE,
+    start_date: DataTypes.DATE,
+    end_date: DataTypes.DATE
   }, {});
   Transaction.associate = function(models) {
     // associations can be defined here
