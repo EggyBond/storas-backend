@@ -162,6 +162,7 @@ router.get('/list', passport.authenticate('jwt', {
  */
 router.post('/checkout', async (req, res) => {
     const {
+        customerId,
         productId,
         startDate,
         endDate,
@@ -185,7 +186,7 @@ router.post('/checkout', async (req, res) => {
     const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
     console.log("STARTDATE", moment(startDate))
     const newTrasaction = await Transaction.create({
-        customerId: 2,
+        customerId: customerId,
         ownerId: product.ownerId,
         productId: product.id,
         status: "NOT PAID",
