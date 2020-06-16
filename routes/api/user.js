@@ -130,6 +130,7 @@ router.post('/login', (req, res) => {
                         success: true,
                         errorMessage: null,
                         result: {
+                            userData: payload,
                             verificationStatus: user.dataValues.verificationStatus,
                             authToken: `${token}`
                         }

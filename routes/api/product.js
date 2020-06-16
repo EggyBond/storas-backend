@@ -13,7 +13,7 @@ const passport = require('passport');
 
 const Pool = require('pg').Pool
 const pool = new Pool({
-    user: 'postgres',
+    user: 'ubuntu',
     host: 'localhost',
     database: 'storas_backend',
     password: 'root',
@@ -68,7 +68,6 @@ router.get('/list', passport.authenticate('jwt', {
 }),async (req, res) => {
     const warehouseType = req.query.warehouseType;
     const ownedOnly = req.query.ownedOnly || false;
-    console.log("Testt ",req.query)
     let whereQuery = {};
     if (warehouseType) {
         whereQuery['warehouseType'] = warehouseType;
@@ -95,6 +94,33 @@ router.get('/list', passport.authenticate('jwt', {
         errorMessage: null
     });
 });
+
+router.get('/listAll', async (req, res) => {
+    const warehouseType = req.query.warehouseType;
+    const ownedOnly = req.query.ownedOnly || false;
+    let whereQuery = {};
+    if (warehouseType) {
+        whereQuery['warehouseType'] = warehouseType;
+    }
+
+    whereQuery['deleted'] = false;
+    
+    const productList = await Product.findAll({
+        where: whereQuery
+    });
+
+    const productsResult = [];
+
+
+    return res.status(200).json({
+        result: {
+            products: productList
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
 
 /**
  * @route GET api/app/product/upsert

@@ -67,6 +67,7 @@ router.get('/detail', passport.authenticate('jwt', {
                 accountName: paymentDestination.accountName,
                 accountNumber: paymentDestination.accountNumber
             },
+
             productInfo: {
                 id: product.id,
                 name: product.name,
@@ -110,12 +111,10 @@ router.get('/list', passport.authenticate('jwt', {
             where: whereQuery
         }
     );
-
     const transactionsResult = [];
 
     for (const trx of transactions) {
         let product = await Product.findByPk(trx.productId);
-        let city = await City.findByPk(product.cityId);
 
         // TODO: Should do this process in frontend instead
         let transactionTime = new Date(trx.createdAt);
@@ -128,12 +127,12 @@ router.get('/list', passport.authenticate('jwt', {
                 totalAmount: trx.totalAmount,
                 customerId: trx.customerId,
                 ownerId: trx.ownerId,
+                warehouseId: product.id,
+                warehouseName: product.name,
                 productInfo: {
                     id: product.id,
                     name: product.name,
-                    cityName: city.name,
                     warehouseType: product.warehouseType,
-                    image: product.images[0],
                     price: product.price
                 },
                 transactionTime: localTransactionTime
