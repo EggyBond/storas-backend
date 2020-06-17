@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
+const e = require('express');
 const key = require('../../config/keys').secret;
 const User = require('../../models').User;
 
@@ -121,7 +122,8 @@ router.post('/login', (req, res) => {
                     id: user.dataValues.id,
                     email: user.dataValues.email,
                     phoneNo: user.dataValues.phoneNo,
-                    type: user.dataValues.type
+                    type: user.dataValues.type,
+                    fullName: user.dataValues.fullName
                 };
                 jwt.sign(payload, key, {
                     expiresIn: 604800
@@ -159,13 +161,173 @@ router.get('/userDetail', passport.authenticate('jwt', {
         success: true,
         errorMessage: null,
         result: {
+            userId: user.id,
             email: user.email,
             fullName: user.fullName,
             phoneNo: user.phoneNo,
             verificationStatus: user.verificationStatus,
             type: user.type,
+            birthdate: user.birthdate,
+            idPicture: user.id_picture,
+            profilePicture: user.profile_picture
         }
     });
+});
+
+router.post('/editProfile', passport.authenticate('jwt', {
+    session: false
+}),(req, res) => {
+    Reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    let {
+        email,
+        password,
+        birthdate,
+        fullName
+    } = req.body
+    if (!Reg.test(email)) {
+        return res.status(400).json({
+            success: false,
+            errorMessage: "Please input valid email",
+            result: null
+        });
+    } else {
+        // Check for the unique Email
+        User.findOne({
+            where: {
+                email: email
+            }
+        }).then(userEmail => {
+            if (userEmail && userEmail.dataValues.email != user.email) {
+                return res.status(409).json({
+                    success: false,
+                    errorMessage: "Email is already registred.",
+                    result: null
+                });
+            } else {
+                bcrypt.compare(req.body.password, user.password).then(isMatch => {
+                    if (isMatch) {
+                        // User's password is correct and we need to send the JSON Token for that user
+                        const payload = {
+                            id: user.id,
+                            email: email,
+                            phoneNo: user.phoneNo,
+                            type: user.type,
+                            fullName: fullName
+                        };
+                        
+                        jwt.sign(payload, key, {
+                            expiresIn: 604800
+                        }, (err, token) => {
+                            User.update({
+                                fullName: fullName,
+                                email: email,
+                                birthdate: birthdate
+                            },{
+                                where: {
+                                  id: user.id
+                                }
+                                }).then(user => {
+                                return res.status(200).json({
+                                    success: true,
+                                    errorMessage: null,
+                                    result: {
+                                        userData: payload,
+                                        authToken: `${token}`
+                                    }
+                                });
+                            });
+                            
+                        })
+                    } else {
+                        return res.status(404).json({
+                            success: false,
+                            errorMessage: "Incorrect password.",
+                            result: null
+                        });
+                    }
+                })
+                // Check for the Unique Phone Number
+                
+            }
+        })
+    }
+
+});
+
+router.post('/changePassword', passport.authenticate('jwt', {
+    session: false
+}),(req, res) => {
+    Reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    let {
+        oldpassword,
+        password1,
+        password2,
+    } = req.body
+    if (password1 !== password2) {
+        return res.status(401).json({
+            success: false,
+            errorMessage: "Password does not match.",
+            result: null
+        });
+    } else {
+
+        bcrypt.compare(req.body.oldpassword, user.password).then(isMatch => {
+            if (isMatch) {
+                // User's password is correct and we need to send the JSON Token for that user
+                bcrypt.genSalt(10, (err, salt) => {
+                    bcrypt.hash(password1, salt, (err, hash) => {
+                        if (err) throw err;
+                        const payload = {
+                            id: user.id,
+                            email: user.email,
+                            phoneNo: user.phoneNo,
+                            type: user.type,
+                            fullName: user.fullName
+                        };
+
+                        jwt.sign(payload, key, {
+                            expiresIn: 604800
+                        }, (err, token) => {
+                            User.update({
+                                password: hash,
+                            },{
+                                where: {
+                                  id: user.id
+                                }
+                                }).then(user => {
+                                return res.status(201).json({
+                                    success: true,
+                                    errorMessage: null,
+                                    result: {
+                                        userData: payload,
+                                        authToken: `${token}`
+                                    }
+                                });
+                            }).catch(err => {
+                                console.log(err)
+                                return res.status(500).json({
+                                    success: false,
+                                    errorMessage: "Unexpected Server Error",
+                                    result: null
+                                });
+                            });
+                            
+                        })
+                        
+                    });
+                });
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    errorMessage: "Incorrect password.",
+                    result: null
+                });
+            }
+        })
+        // Check for the unique Email
+        
+    }
+
 });
 
 module.exports = router;
