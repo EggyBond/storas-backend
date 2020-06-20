@@ -160,7 +160,7 @@ router.get('/list', passport.authenticate('jwt', {
  * @desc Checkout Transaction
  * @access Private
  */
-router.post('/checkout', async (req, res) => {
+router.post('/test', async (req, res) => {
     const {
         customerId,
         productId,
@@ -211,7 +211,7 @@ router.post('/checkout', async (req, res) => {
  * @desc Checkout Transaction
  * @access Private
  */
-router.post('/test', async (req, res) => {
+router.post('/checkout', async (req, res) => {
 
     const {
         customerId,
