@@ -211,10 +211,11 @@ router.post('/test', async (req, res) => {
  * @desc Checkout Transaction
  * @access Private
  */
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', passport.authenticate('jwt', {
+    session: false
+}),async (req, res) => {
 
     const {
-        customerId,
         full_name,
         phone,
         email,
@@ -246,7 +247,7 @@ router.post('/checkout', async (req, res) => {
         const currentDate = new Date();
         const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
         const newTrasaction = await Transaction.create({
-            customerId: customerId,
+            customerId: user.id,
             ownerId: product.ownerId,
             productId: product.id,
             status: "NOT PAID",
