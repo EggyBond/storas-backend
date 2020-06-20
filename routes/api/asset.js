@@ -11,9 +11,7 @@ const firebaseAdmin = require("../../services/firebaseAdmin");
  * @access Private
  */
 
-router.post('/upload', passport.authenticate('jwt', {
-    session: false
-}), async (req, res) => {
+router.post('/upload', async (req, res) => {
 
     const storage = firebaseAdmin.storage();
     const bucket = storage.bucket();

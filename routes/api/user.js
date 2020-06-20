@@ -6,7 +6,11 @@ const passport = require('passport');
 const e = require('express');
 const key = require('../../config/keys').secret;
 const User = require('../../models').User;
-
+const UserOtps = require('../../models').UserOtps;
+const mimeTypes = require('mimetypes');
+const {v4: UUID} = require('uuid');
+const firebaseAdmin = require("../../services/firebaseAdmin");
+const nodemailer = require("../../services/nodemailer");
 /**
  * @route POST api/users/register
  * @desc Register the User
@@ -66,26 +70,59 @@ router.post('/register', (req, res) => {
                             bcrypt.hash(password1, salt, (err, hash) => {
                                 if (err) throw err;
                                 // password = hash;
-                                User.create({
-                                    fullName: fullName,
-                                    email: email,
-                                    phoneNo: phoneNo,
-                                    password: hash,
-                                    type: type,
-                                    verificationStatus: false
-                                }).then(user => {
-                                    return res.status(201).json({
-                                        success: true,
-                                        errorMessage: null,
-                                        result: null
+                                
+                                const storage = firebaseAdmin.storage();
+                                const bucket = storage.bucket();
+                                var downloadUrl = ""
+                                const image = req.body.imagePayload.image,
+                                    mimeType = image.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)[1],
+                                    fileName = req.body.imagePayload.fileName + new Date().getTime() + "." + mimeTypes.detectExtension(mimeType),
+                                    base64EncodedImageString = image.replace(/^data:image\/\w+;base64,/, ''),
+                                    imageBuffer = Buffer.from(base64EncodedImageString, 'base64');
+
+                                // Upload the image to the bucket
+                                const file = bucket.file('asset/images/' + fileName);
+
+                                const uuid = UUID();
+                                file.save(imageBuffer, {
+                                    metadata: {
+                                        contentType: mimeType,
+                                        firebaseStorageDownloadTokens: uuid
+                                    },
+                                    public: true
+                                }, async function (error) {
+                                    if (error) {
+                                        return res.status(500).json({
+                                            success: false,
+                                            errorMessage: "Unable to upload image"
+                                        });
+                                    }
+
+                                    downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media&token=${uuid}`;
+                                    console.log(downloadUrl)
+                                    User.create({
+                                        fullName: fullName,
+                                        email: email,
+                                        phoneNo: phoneNo,
+                                        password: hash,
+                                        type: type,
+                                        verificationStatus: false,
+                                        id_picture : downloadUrl
+    
+                                    }).then(user => {
+                                        return res.status(201).json({
+                                            success: true,
+                                            errorMessage: null,
+                                            result: null
+                                        });
+                                    }).catch(err => {
+                                        return res.status(500).json({
+                                            success: false,
+                                            errorMessage: "Unexpected Server Error",
+                                            result: null
+                                        });
                                     });
-                                }).catch(err => {
-                                    return res.status(500).json({
-                                        success: false,
-                                        errorMessage: "Unexpected Server Error",
-                                        result: null
-                                    });
-                                });
+                                });     
                             });
                         });
                     }
@@ -327,6 +364,124 @@ router.post('/changePassword', passport.authenticate('jwt', {
         // Check for the unique Email
         
     }
+
+});
+
+function generateOTP() { 
+          
+    // Declare a digits variable  
+    // which stores all digits 
+    var digits = '0123456789'; 
+    let OTP = ''; 
+    for (let i = 0; i < 6; i++ ) { 
+        OTP += digits[Math.floor(Math.random() * 10)]; 
+    } 
+    return OTP; 
+} 
+
+router.get('/resendOtp', passport.authenticate('jwt', {
+    session: false
+}),(req, res) => {
+    UserOtps.findOne({
+        where: {
+            id: user.id
+        }
+    }).then(otp => {
+        var return_otp = "";
+        if(otp){
+            return_otp = otp.dataValues.otp;
+        }else{
+            let otp = generateOTP();
+            let expiredTime = new Date();
+            expiredTime.setTime(expiredTime.getTime() + (1*60*60*1000));
+            UserOtps.create({
+                userId: user.id,
+                otp: otp,
+                expired: expiredTime,
+            }).catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    errorMessage: "Unexpected Server Error",
+                    result: null
+                });
+            });
+            return_otp = otp;
+        }
+        var mailOptions = {
+            from: 'storas.id@gmail.com',
+            to: user.email,
+            subject: 'OTP',
+            text: `Berikut ini adalah otp ${return_otp}`
+        };
+        nodemailer.sendMail(mailOptions, function(error, info){
+            if (error) {
+                console.log(error);
+                return res.status(400).json({
+                    success: false,
+                    errorMessage: "error sending otp",
+                });
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            errorMessage: null,
+        });
+    })
+    
+
+});
+
+router.post('/verifyOtp', passport.authenticate('jwt', {
+    session: false
+}),(req, res) => {
+    let {
+        otp
+    } = req.body
+    
+    UserOtps.findOne({
+        where: {
+            userId: user.id
+        }
+    }).then(userOtp => {
+        if(userOtp){
+            if(otp == userOtp.dataValues.otp){
+                User.update({
+                    verificationStatus: true,
+                },{
+                    where: {
+                      id: user.id
+                    }
+                    }).then(user => {
+                    return res.status(200).json({
+                        success: true,
+                        errorMessage: null
+                    })
+                });
+            }else{
+                return res.status(400).json({
+                    success: false,
+                    errorMessage: "Wrong OTP",
+                    result: null
+                });
+            }
+        }else{
+            return res.status(400).json({
+                success: false,
+                errorMessage: "Wrong OTP",
+                result: null
+            });
+        }
+    }).catch(err => {
+        console.log(err)
+        return res.status(500).json({
+            success: false,
+            errorMessage: "Unexpected Server Error",
+            result: null
+        });
+    });
+    
 
 });
 

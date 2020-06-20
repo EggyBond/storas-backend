@@ -184,7 +184,6 @@ router.post('/checkout', async (req, res) => {
 
     const currentDate = new Date();
     const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
-    console.log("STARTDATE", moment(startDate))
     const newTrasaction = await Transaction.create({
         customerId: customerId,
         ownerId: product.ownerId,
