@@ -282,7 +282,7 @@ router.post('/checkout', async (req, res) => {
         await trxSession.commit();
         return res.status(201).json({
             result: {
-                billingDetail: newBillingDetail.id
+                transactionId: newTrasaction.id
             },
             success: true,
             errorMessage: null
