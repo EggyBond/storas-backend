@@ -160,7 +160,8 @@ router.post('/login', (req, res) => {
                     email: user.dataValues.email,
                     phoneNo: user.dataValues.phoneNo,
                     type: user.dataValues.type,
-                    fullName: user.dataValues.fullName
+                    fullName: user.dataValues.fullName,
+                    profilePicture: user.dataValues.profile_picture
                 };
                 jwt.sign(payload, key, {
                     expiresIn: 604800
@@ -217,9 +218,9 @@ router.post('/editProfile', passport.authenticate('jwt', {
     Reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
     let {
         email,
-        password,
         birthdate,
-        fullName
+        fullName,
+        profilePicture
     } = req.body
     if (!Reg.test(email)) {
         return res.status(400).json({
@@ -258,7 +259,8 @@ router.post('/editProfile', passport.authenticate('jwt', {
                             User.update({
                                 fullName: fullName,
                                 email: email,
-                                birthdate: birthdate
+                                birthdate: birthdate,
+                                profile_picture: profilePicture
                             },{
                                 where: {
                                   id: user.id

@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const Transaction = require('../../models').Transaction;
+const BillingDetail = require('../../models').BillingDetail;
 const Product = require('../../models').Product;
-const City = require('../../models').City;
 const Payment = require('../../models').Payment;
 const PaymentDestination = require('../../models').PaymentDestination;
 const firebaseAdmin = require("../../services/firebaseAdmin");
@@ -200,6 +200,147 @@ router.post('/checkout', async (req, res) => {
     return res.status(201).json({
         result: {
             transactionId: newTrasaction.id
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+/**
+ * @route POST api/app/transaction/checkout
+ * @desc Checkout Transaction
+ * @access Private
+ */
+router.post('/test', async (req, res) => {
+
+    const {
+        customerId,
+        full_name,
+        phone,
+        email,
+        country,
+        address,
+        city,
+        state,
+        pincode,
+        item,
+        startDate,
+        endDate,
+        total
+    } = req.body;
+
+    const product = await Product.findByPk(item);
+    
+    if (!product.active) {
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Product is no longer available"
+        });
+    }
+
+    const trxSession = await db.sequelize.transaction();
+    try{
+        const currentDate = new Date();
+        const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
+        const newTrasaction = await Transaction.create({
+            customerId: customerId,
+            ownerId: product.ownerId,
+            productId: product.id,
+            status: "NOT PAID",
+            totalAmount: total,
+            decimalPoint: product.decimalPoint,
+            currency: product.currency,
+            expiredAt: expiryDate,
+            start_date: moment(startDate),
+            end_date: moment(endDate)
+        }, { transaction: trxSession });
+    
+        const newPayment = await Payment.create({
+            transactionId: newTrasaction.id,
+            paymentMethod: "BANK_TRANSFER",
+            payableAmount: product.id,
+            status: "NOT PAID",
+            totalAmount: total,
+            status: "NOT PAID",
+        }, { transaction: trxSession });
+    
+        const newBillingDetail = await BillingDetail.create({
+            paymentId: newPayment.id,
+            full_name:full_name,
+            phone:phone,
+            email:email,
+            country:country,
+            address:address,
+            city:city,
+            state:state,
+            pincode:pincode,
+        }, { transaction: trxSession });
+
+        await trxSession.commit();
+        return res.status(201).json({
+            result: {
+                billingDetail: newBillingDetail.id
+            },
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        console.log(e)
+        await trxSession.rollback();
+        return res.status(400).json({
+            success: false,
+            errorMessage: null
+        });
+    }
+
+});
+
+
+/**
+ * @route POST api/app/transaction/checkout
+ * @desc Checkout Transaction
+ * @access Private
+ */
+router.post('/manualInput', async (req, res) => {
+    const {
+        productId,
+        startDate,
+        endDate,
+    } = req.body;
+
+    const product = await Product.findByPk(productId);
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
+    
+    if (!product.active) {
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Product is no longer available"
+        });
+    }
+
+    const newManualTrasaction = await Transaction.create({
+        customerId: product.ownerId,
+        ownerId: product.ownerId,
+        productId: product.id,
+        status: "MANUAL",
+        totalAmount: 0,
+        decimalPoint: product.decimalPoint,
+        currency: product.currency,
+        expiredAt: expiryDate,
+        start_date: moment(startDate),
+        end_date: moment(endDate)
+    });
+
+    return res.status(201).json({
+        result: {
+            manualTransactionId: newManualTrasaction.id
         },
         success: true,
         errorMessage: null
