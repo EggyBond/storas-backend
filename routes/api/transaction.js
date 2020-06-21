@@ -6,6 +6,7 @@ const BillingDetail = require('../../models').BillingDetail;
 const Product = require('../../models').Product;
 const Payment = require('../../models').Payment;
 const PaymentDestination = require('../../models').PaymentDestination;
+const User = require('../../models').User;
 const firebaseAdmin = require("../../services/firebaseAdmin");
 const mimeTypes = require('mimetypes');
 const {v4: UUID} = require('uuid');
@@ -16,78 +17,6 @@ const moment = require('moment');
  * @desc Get transaction detail
  * @access Private
  */
-router.get('/detailOld', passport.authenticate('jwt', {
-    session: false
-}), async (req, res) => {
-    const transactionId = req.query.id;
-    const transaction = await Transaction.findByPk(transactionId);
-
-    if ((!transaction
-        || (transaction.customerId !== user.id && transaction.ownerId !== user.id))
-        && (user.type !== 'ADMIN')
-    ) {
-        return res.status(404).json({
-            result: null,
-            success: false,
-            errorMessage: "Particular transaction id not found"
-        })
-    }
-
-    const product = await Product.findByPk(transaction.productId);
-    let paymentList = [];
-    let paymentDestination = {};
-    if (user.type === 'CUSTOMER' || user.type === 'ADMIN') {
-        paymentList = await Payment.findAll(
-            {
-                where: {
-                    transactionId: transaction.id
-                }
-            }
-        );
-        // TODO: For now this is hardcoded to find the first paymentDestination
-        paymentDestination = await PaymentDestination.findOne();
-    }
-
-
-    // TODO: Should do this process in frontend instead
-    const transactionTime = new Date(transaction.createdAt);
-    const localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
-
-    return res.status(200).json({
-        result: {
-            id: transaction.id,
-            status: transaction.status,
-            customerId: transaction.customerId,
-            ownerId: transaction.ownerId,
-            totalAmount: transaction.totalAmount,
-            transactionTime: localTransactionTime,
-            startDate: transaction.start_date,
-            endDate: transaction.end_date,
-            paymentDestination: {
-                bankName: paymentDestination.bankName,
-                accountName: paymentDestination.accountName,
-                accountNumber: paymentDestination.accountNumber
-            },
-
-            productInfo: {
-                id: product.id,
-                name: product.name,
-                city: product.city,
-                warehouseType: product.warehouseType,
-                images: product.images,
-                price: product.price,
-                description: product.description,
-                geoLocation: {
-                    lng: product.geoLng,
-                    lat: product.geoLat
-                },
-            },
-            paymentList
-        },
-        success: true,
-        errorMessage: null
-    });
-});
 
 router.get('/adminDetail', passport.authenticate('jwt', {
     session: false
@@ -108,9 +37,22 @@ router.get('/adminDetail', passport.authenticate('jwt', {
 
     const product = await Product.findByPk(transaction.productId);
 
+    let ownerData = [];
     let paymentList = [];
     let billingDetail = [];
     let paymentDestination = {};
+
+    if (user.type === 'ADMIN' && product != null) {
+        ownerData = await User.findAll(
+            {
+                where: {
+                    id: product.ownerId
+                }
+            }
+        );
+        // TODO: For now this is hardcoded to find the first paymentDestination
+    }
+
     if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && transaction != null) {
         paymentList = await Payment.findAll(
             {
@@ -150,6 +92,7 @@ router.get('/adminDetail', passport.authenticate('jwt', {
             endDate: transaction.end_date,
             productInfo: {
                 id: product.id,
+                ownerId : product.ownerId,
                 name: product.name,
                 city: product.city,
                 warehouseType: product.warehouseType,
@@ -161,6 +104,7 @@ router.get('/adminDetail', passport.authenticate('jwt', {
                     lat: product.geoLat
                 },
             },
+            ownerData: ownerData[0],
             paymentList: paymentList[0],
             billingDetail: billingDetail[0]
         },
