@@ -64,7 +64,7 @@ router.get('/adminDetail', passport.authenticate('jwt', {
         // TODO: For now this is hardcoded to find the first paymentDestination
     }
 
-    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && paymentList != null) {
+    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && paymentList.length > 0) {
         billingDetail = await BillingDetail.findAll(
             {
                 where: {
@@ -348,27 +348,29 @@ router.get('/list', passport.authenticate('jwt', {
             );
             // TODO: For now this is hardcoded to find the first paymentDestination
         }
-        transactionsResult.push(
-            {
-                id: trx.id,
-                status: trx.status,
-                totalAmount: trx.totalAmount,
-                customerId: trx.customerId,
-                ownerId: trx.ownerId,
-                warehouseId: product.id,
-                warehouseName: product.name,
-                startDate: trx.start_date,
-                endDate: trx.end_date,
-                paymentId : paymentList[0].dataValues.id,
-                productInfo: {
-                    id: product.id,
-                    name: product.name,
-                    warehouseType: product.warehouseType,
-                    price: product.price
-                },
-                transactionTime: localTransactionTime
-            }
-        )
+        var dataResult = {
+            id: trx.id,
+            status: trx.status,
+            totalAmount: trx.totalAmount,
+            customerId: trx.customerId,
+            ownerId: trx.ownerId,
+            warehouseId: product.id,
+            warehouseName: product.name,
+            startDate: trx.start_date,
+            endDate: trx.end_date,
+            productInfo: {
+                id: product.id,
+                name: product.name,
+                warehouseType: product.warehouseType,
+                price: product.price
+            },
+            transactionTime: localTransactionTime
+        }
+        if(paymentList.length > 0){
+            dataResult.paymentId = paymentList[0].dataValues.id
+        }
+    
+        transactionsResult.push(dataResult)
     }
     return res.status(200).json({
         result: {
