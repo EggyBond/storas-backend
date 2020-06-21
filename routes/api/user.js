@@ -11,6 +11,7 @@ const mimeTypes = require('mimetypes');
 const {v4: UUID} = require('uuid');
 const firebaseAdmin = require("../../services/firebaseAdmin");
 const nodemailer = require("../../services/nodemailer");
+
 /**
  * @route POST api/users/register
  * @desc Register the User
@@ -110,6 +111,28 @@ router.post('/register', (req, res) => {
                                         id_picture : downloadUrl
     
                                     }).then(user => {
+                                        let otp = generateOTP();
+                                        let expiredTime = new Date();
+                                        expiredTime.setTime(expiredTime.getTime() + (1*60*60*1000));
+                                        UserOtps.create({
+                                            userId: user.id,
+                                            otp: otp,
+                                            expired: expiredTime,
+                                        }).then((userOtp)=>{
+                                            var mailOptions = {
+                                                from: 'storas.id@gmail.com',
+                                                to: email,
+                                                subject: 'OTP',
+                                                text: `Berikut ini adalah otp ${otp}`
+                                            };
+                                            nodemailer.sendMail(mailOptions, function(error, info){
+                                                if (error) {
+                                                    console.log(error);
+                                                } else {
+                                                    console.log('Email sent: ' + info.response);
+                                                }
+                                            });
+                                        })
                                         return res.status(201).json({
                                             success: true,
                                             errorMessage: null,
@@ -131,6 +154,184 @@ router.post('/register', (req, res) => {
         })
     }
 
+});
+
+router.post('/registerAdmin', passport.authenticate('jwt', {
+    session: false
+}),  (req, res) => {
+    Reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    let {
+        fullName,
+        email,
+        phoneNo,
+        password1,
+        password2,
+        type,
+    } = req.body
+
+    if (user.type !== 'ADMIN') {
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "You're not authorized to use this API."
+        });
+    }
+
+    if (password1 !== password2) {
+        return res.status(401).json({
+            success: false,
+            errorMessage: "Password does not match.",
+            result: null
+        });
+    } else if (!Reg.test(email)) {
+        return res.status(400).json({
+            success: false,
+            errorMessage: "Please input valid email",
+            result: null
+        });
+    } else {
+        // Check for the unique Email
+        User.findOne({
+            where: {
+                email: email
+            }
+        }).then(user => {
+            if (user) {
+                return res.status(409).json({
+                    success: false,
+                    errorMessage: "Email is already registred. Did you forgot your password.",
+                    result: null
+                });
+            } else {
+                // Check for the Unique Phone Number
+                User.findOne({
+                    where: {
+                        phoneNo: phoneNo
+                    }
+                }).then(user => {
+                    if (user) {
+                        return res.status(409).json({
+                            success: false,
+                            errorMessage: "Phone number is already registred.",
+                            result: null
+                        });
+                    } else {
+                        // Hash the password
+                        bcrypt.genSalt(10, (err, salt) => {
+                            bcrypt.hash(password1, salt, (err, hash) => {
+                                if (err) throw err;
+                                // password = hash;
+                                User.create({
+                                    fullName: fullName,
+                                    email: email,
+                                    phoneNo: phoneNo,
+                                    password: hash,
+                                    type: type,
+                                    verificationStatus: true,
+
+                                }).then(user => {
+                                    return res.status(201).json({
+                                        success: true,
+                                        errorMessage: null,
+                                        result: null
+                                    });
+                                }).catch(err => {
+                                    return res.status(500).json({
+                                        success: false,
+                                        errorMessage: "Unexpected Server Error",
+                                        result: null
+                                    });
+                                });
+                            });     
+                        });
+                    }
+                });
+            }
+        })
+    }
+
+});
+
+/**
+ * @route POST api/users/listAdmin
+ * @desc Signing in the User
+ * @access Public
+ */
+router.get('/listAdmin', passport.authenticate('jwt', {
+    session: false
+}), (req, res) => {
+    
+    if(user.type == "ADMIN"){
+        let whereQuery = {};
+        whereQuery['type']="ADMIN"
+        const users = User.findAll(
+            {
+                where: whereQuery
+            }
+        ).then((user) => {
+            return res.status(200).json({
+                result: {
+                    users: user
+                },
+                success: true,
+                errorMessage: null
+            });
+        });
+    }else{
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "You're not authorized to use this API."
+        });
+    }
+
+});
+
+/**
+ * @route POST api/users/listAdmin
+ * @desc Signing in the User
+ * @access Public
+ */
+router.delete('/deleteAdmin', passport.authenticate('jwt', {
+    session: false
+}), (req, res) => {
+    let {
+        userId
+    } = req.query
+
+    if(user.type != "ADMIN"){
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "You're not authorized to use this API."
+        });
+    }
+
+    if(user.id == userId){
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "Cannot delete yourself"
+        });
+    }
+
+    User.destroy(
+        {
+            where: { id : userId}
+        }
+    ).then(() => {
+        return res.status(200).json({
+            success: true,
+            errorMessage: null
+        });
+    }).catch((err)=>{
+        console.log(err)
+        return res.status(500).json({
+            success: false,
+            errorMessage: "Unexpected Server Error",
+            result: null
+        });
+    });
 });
 
 /**
@@ -186,6 +387,7 @@ router.post('/login', (req, res) => {
         })
     });
 });
+
 
 /**
  * @route GET api/users/userDetail

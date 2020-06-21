@@ -16,7 +16,7 @@ const moment = require('moment');
  * @desc Get transaction detail
  * @access Private
  */
-router.get('/detail', passport.authenticate('jwt', {
+router.get('/detailOld', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
     const transactionId = req.query.id;
@@ -34,7 +34,6 @@ router.get('/detail', passport.authenticate('jwt', {
     }
 
     const product = await Product.findByPk(transaction.productId);
-
     let paymentList = [];
     let paymentDestination = {};
     if (user.type === 'CUSTOMER' || user.type === 'ADMIN') {
@@ -62,6 +61,8 @@ router.get('/detail', passport.authenticate('jwt', {
             ownerId: transaction.ownerId,
             totalAmount: transaction.totalAmount,
             transactionTime: localTransactionTime,
+            startDate: transaction.start_date,
+            endDate: transaction.end_date,
             paymentDestination: {
                 bankName: paymentDestination.bankName,
                 accountName: paymentDestination.accountName,
@@ -82,6 +83,236 @@ router.get('/detail', passport.authenticate('jwt', {
                 },
             },
             paymentList
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+router.get('/adminDetail', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const transactionId = req.query.id;
+    const transaction = await Transaction.findByPk(transactionId);
+
+    if ((!transaction
+        || (transaction.customerId !== user.id && transaction.ownerId !== user.id))
+        && (user.type !== 'ADMIN')
+    ) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "Particular transaction id not found"
+        })
+    }
+
+    const product = await Product.findByPk(transaction.productId);
+
+    let paymentList = [];
+    let billingDetail = [];
+    let paymentDestination = {};
+    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && transaction != null) {
+        paymentList = await Payment.findAll(
+            {
+                where: {
+                    transactionId: transaction.id
+                }
+            }
+        );
+        // TODO: For now this is hardcoded to find the first paymentDestination
+    }
+
+    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && paymentList != null) {
+        billingDetail = await BillingDetail.findAll(
+            {
+                where: {
+                    paymentId: paymentList[0].dataValues.id
+                }
+            }
+        );
+        // TODO: For now this is hardcoded to find the first paymentDestination
+        paymentDestination = await PaymentDestination.findOne();
+    }
+
+    // TODO: Should do this process in frontend instead
+    const transactionTime = new Date(transaction.createdAt);
+    const localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
+
+    return res.status(200).json({
+        result: {
+            id: transaction.id,
+            status: transaction.status,
+            customerId: transaction.customerId,
+            ownerId: transaction.ownerId,
+            totalAmount: transaction.totalAmount,
+            transactionTime: localTransactionTime,
+            startDate: transaction.start_date,
+            endDate: transaction.end_date,
+            productInfo: {
+                id: product.id,
+                name: product.name,
+                city: product.city,
+                warehouseType: product.warehouseType,
+                images: product.images,
+                price: product.price,
+                description: product.description,
+                geoLocation: {
+                    lng: product.geoLng,
+                    lat: product.geoLat
+                },
+            },
+            paymentList: paymentList[0],
+            billingDetail: billingDetail[0]
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+router.get('/detail', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const transactionId = req.query.id;
+    const transaction = await Transaction.findByPk(transactionId);
+
+    if ((!transaction
+        || (transaction.customerId !== user.id && transaction.ownerId !== user.id))
+        && (user.type !== 'ADMIN')
+    ) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "Particular transaction id not found"
+        })
+    }
+
+    const product = await Product.findByPk(transaction.productId);
+
+    let paymentList = [];
+    let billingDetail = [];
+    let paymentDestination = {};
+    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && transaction != null) {
+        paymentList = await Payment.findAll(
+            {
+                where: {
+                    transactionId: transaction.id
+                }
+            }
+        );
+        // TODO: For now this is hardcoded to find the first paymentDestination
+    }
+
+    if ((user.type === 'CUSTOMER' || user.type === 'ADMIN') && paymentList != null) {
+        billingDetail = await BillingDetail.findAll(
+            {
+                where: {
+                    paymentId: paymentList[0].dataValues.id
+                }
+            }
+        );
+        // TODO: For now this is hardcoded to find the first paymentDestination
+        paymentDestination = await PaymentDestination.findOne();
+    }
+
+    // TODO: Should do this process in frontend instead
+    const transactionTime = new Date(transaction.createdAt);
+    const localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
+
+    return res.status(200).json({
+        result: {
+            id: transaction.id,
+            status: transaction.status,
+            customerId: transaction.customerId,
+            ownerId: transaction.ownerId,
+            totalAmount: transaction.totalAmount,
+            transactionTime: localTransactionTime,
+            startDate: transaction.start_date,
+            endDate: transaction.end_date,
+            productInfo: {
+                id: product.id,
+                name: product.name,
+                city: product.city,
+                warehouseType: product.warehouseType,
+                images: product.images,
+                price: product.price,
+                description: product.description,
+                geoLocation: {
+                    lng: product.geoLng,
+                    lat: product.geoLat
+                },
+            },
+            paymentList: paymentList[0],
+            billingDetail: billingDetail[0]
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+
+
+
+/**
+ * @route GET api/app/transaction/list
+ * @desc Get transaction list
+ * @access Private
+ */
+router.get('/manualTransactionList', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+
+    let whereQuery = {};
+
+    switch (user.type) {
+        case 'PRODUCT_OWNER':
+            whereQuery['ownerId'] = user.id;
+            break;
+        case 'CUSTOMER':
+            whereQuery['customerId'] = user.id;
+            break;
+        case 'ADMIN':
+            whereQuery = {};
+            break;
+    }
+    whereQuery['status']="MANUAL"
+    const transactions = await Transaction.findAll(
+        {
+            where: whereQuery
+        }
+    );
+    const transactionsResult = [];
+
+    for (const trx of transactions) {
+        let product = await Product.findByPk(trx.productId);
+
+        // TODO: Should do this process in frontend instead
+        let transactionTime = new Date(trx.createdAt);
+        let localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
+
+        transactionsResult.push(
+            {
+                id: trx.id,
+                status: trx.status,
+                totalAmount: trx.totalAmount,
+                customerId: trx.customerId,
+                ownerId: trx.ownerId,
+                warehouseId: product.id,
+                warehouseName: product.name,
+                startDate: trx.start_date,
+                endDate: trx.end_date,
+                productInfo: {
+                    id: product.id,
+                    name: product.name,
+                    warehouseType: product.warehouseType,
+                    price: product.price
+                },
+                transactionTime: localTransactionTime
+            }
+        )
+    }
+    return res.status(200).json({
+        result: {
+            transactions: transactionsResult
         },
         success: true,
         errorMessage: null
@@ -110,7 +341,9 @@ router.get('/list', passport.authenticate('jwt', {
             whereQuery = {};
             break;
     }
+    const { Op } = require("sequelize");
 
+    whereQuery["status"] = { [Op.not]: 'MANUAL'}
     const transactions = await Transaction.findAll(
         {
             where: whereQuery
@@ -161,16 +394,25 @@ router.get('/list', passport.authenticate('jwt', {
  * @access Private
  */
 router.post('/test', async (req, res) => {
+
     const {
         customerId,
-        productId,
+        full_name,
+        phone,
+        email,
+        country,
+        address,
+        city,
+        state,
+        pincode,
+        item,
         startDate,
         endDate,
-        price
+        total
     } = req.body;
 
-    const product = await Product.findByPk(productId);
-
+    const product = await Product.findByPk(item);
+    
     if (!product.active) {
         return res.status(403).json({
             result: {
@@ -181,29 +423,61 @@ router.post('/test', async (req, res) => {
         });
     }
 
+    const trxSession = await db.sequelize.transaction();
+    try{
+        const currentDate = new Date();
+        const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
+        const newTrasaction = await Transaction.create({
+            customerId: customerId,
+            ownerId: product.ownerId,
+            productId: product.id,
+            status: "NOT PAID",
+            totalAmount: total,
+            decimalPoint: product.decimalPoint,
+            currency: product.currency,
+            expiredAt: expiryDate,
+            start_date: moment(startDate),
+            end_date: moment(endDate)
+        }, { transaction: trxSession });
+    
+        const newPayment = await Payment.create({
+            transactionId: newTrasaction.id,
+            paymentMethod: "BANK_TRANSFER",
+            payableAmount: product.id,
+            status: "NOT PAID",
+            totalAmount: total,
+            status: "NOT PAID",
+        }, { transaction: trxSession });
+    
+        const newBillingDetail = await BillingDetail.create({
+            paymentId: newPayment.id,
+            full_name:full_name,
+            phone:phone,
+            email:email,
+            country:country,
+            address:address,
+            city:city,
+            state:state,
+            pincode:pincode,
+        }, { transaction: trxSession });
 
-    const currentDate = new Date();
-    const expiryDate = new Date(currentDate.getTime() + (2 * 24 * 60 * 60 * 1000)); // Expiry date 2 days after created.
-    const newTrasaction = await Transaction.create({
-        customerId: customerId,
-        ownerId: product.ownerId,
-        productId: product.id,
-        status: "NOT PAID",
-        totalAmount: price,
-        decimalPoint: product.decimalPoint,
-        currency: product.currency,
-        expiredAt: expiryDate,
-        start_date: moment(startDate),
-        end_date: moment(endDate)
-    });
+        await trxSession.commit();
+        return res.status(201).json({
+            result: {
+                transactionId: newTrasaction.id
+            },
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        console.log(e)
+        await trxSession.rollback();
+        return res.status(400).json({
+            success: false,
+            errorMessage: null
+        });
+    }
 
-    return res.status(201).json({
-        result: {
-            transactionId: newTrasaction.id
-        },
-        success: true,
-        errorMessage: null
-    });
 });
 
 /**
@@ -508,15 +782,15 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
             // 1. If the newState is PAID, go to next process.
             if (newState === 'PAID') {
                 payment.status = newState;
-
+                transaction.status = 'ISSUED';
                 // 1a. Check if the totalAmount paid is greater or equal. If it less, then mark the transaction as PARTIALLY_PAID.
-                const remainingAmount = transaction.totalAmount - payment.payableAmount;
-                if (remainingAmount <= 0) {
-                    transaction.status = 'ISSUED';
-                } else {
-                    transaction.status = 'PARTIALLY_PAID';
-                    console.log(`Transaction for ${transaction.id} is PARTIALLY_PAID, amount to be paid is ${remainingAmount}`);
-                }
+                // const remainingAmount = transaction.totalAmount - payment.payableAmount;
+                // if (remainingAmount <= 0) {
+                //     transaction.status = 'ISSUED';
+                // } else {
+                //     transaction.status = 'PARTIALLY_PAID';
+                //     console.log(`Transaction for ${transaction.id} is PARTIALLY_PAID, amount to be paid is ${remainingAmount}`);
+                // }
             }
 
             // 2. For now, if the payment is rejected, the transaction will be cancelled. The customer need to rebook their transaction.
