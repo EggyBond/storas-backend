@@ -319,6 +319,41 @@ router.get('/manualTransactionList', passport.authenticate('jwt', {
     });
 });
 
+
+router.delete('/deleteManualTransaction', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const transactionId = req.query.id;
+    const transaction = await Transaction.findByPk(transactionId);
+
+    if (!transaction && transaction.ownerId !== user.id) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "Particular transaction id not found"
+        })
+    }
+
+    Transaction.destroy(
+        {
+            where: { id : transactionId}
+        }
+    ).then(() => {
+        return res.status(200).json({
+            success: true,
+            errorMessage: null
+        });
+    }).catch((err)=>{
+        console.log(err)
+        return res.status(500).json({
+            success: false,
+            errorMessage: "Unexpected Server Error",
+            result: null
+        });
+    });
+});
+
+
 /**
  * @route GET api/app/transaction/list
  * @desc Get transaction list
@@ -358,6 +393,17 @@ router.get('/list', passport.authenticate('jwt', {
         let transactionTime = new Date(trx.createdAt);
         let localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
 
+        let paymentList = {};
+        if ( trx != null) {
+            paymentList = await Payment.findAll(
+                {
+                    where: {
+                        transactionId: trx.id
+                    }
+                }
+            );
+            // TODO: For now this is hardcoded to find the first paymentDestination
+        }
         transactionsResult.push(
             {
                 id: trx.id,
@@ -369,6 +415,7 @@ router.get('/list', passport.authenticate('jwt', {
                 warehouseName: product.name,
                 startDate: trx.start_date,
                 endDate: trx.end_date,
+                paymentId : paymentList[0].dataValues.id,
                 productInfo: {
                     id: product.id,
                     name: product.name,
