@@ -766,8 +766,8 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
 
     // 0. Check if new state is same as current state, or if it's already in a final state
     if ((newState !== payment.status) ||
-        (transaction.status === 'ISSUED') ||
-        (transaction.status === 'CANCELLED')
+        (transaction.status === 'BOOKED') ||
+        (transaction.status === 'REJECTED')
     ) {
         const trxSession = await db.sequelize.transaction();
 
@@ -775,7 +775,7 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
             // 1. If the newState is PAID, go to next process.
             if (newState === 'PAID') {
                 payment.status = newState;
-                transaction.status = 'ISSUED';
+                transaction.status = 'BOOKED';
                 // 1a. Check if the totalAmount paid is greater or equal. If it less, then mark the transaction as PARTIALLY_PAID.
                 // const remainingAmount = transaction.totalAmount - payment.payableAmount;
                 // if (remainingAmount <= 0) {
@@ -789,7 +789,7 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
             // 2. For now, if the payment is rejected, the transaction will be cancelled. The customer need to rebook their transaction.
             if (newState === 'REJECTED') {
                 payment.status = newState;
-                transaction.status = 'CANCELLED';
+                transaction.status = 'REJECTED';
             }
 
             // Finally, save the transaction
