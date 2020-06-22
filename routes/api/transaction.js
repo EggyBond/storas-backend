@@ -404,6 +404,35 @@ router.post('/test', async (req, res) => {
         total
     } = req.body;
 
+    const { Op } = require("sequelize");
+    const checkTransaction = await Transaction.findAll(
+        {
+            where: {
+                productId: item,
+                status: {
+                    [Op.not]: "REJECTED",
+                    [Op.not]: "CANCELED",
+                    [Op.not]: "REFUND",
+                },
+                start_date: {
+                    [Op.lte]: moment(endDate)
+                },
+                end_date: {
+                    [Op.gte]: moment(startDate)
+                }
+            }
+        }
+    );       
+
+    if(checkTransaction.length > 0){
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Date not available"
+        });
+    }
     const product = await Product.findByPk(item);
     
     if (!product.active) {
@@ -415,6 +444,8 @@ router.post('/test', async (req, res) => {
             errorMessage: "Product is no longer available"
         });
     }
+
+
 
     const trxSession = await db.sequelize.transaction();
     try{
@@ -508,6 +539,8 @@ router.post('/checkout', passport.authenticate('jwt', {
             errorMessage: "Product is no longer available"
         });
     }
+
+    
 
     const trxSession = await db.sequelize.transaction();
     try{
@@ -788,8 +821,13 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
 
             // 2. For now, if the payment is rejected, the transaction will be cancelled. The customer need to rebook their transaction.
             if (newState === 'REJECTED') {
-                payment.status = newState;
-                transaction.status = 'REJECTED';
+                if(payment.status === 'PAID'){
+                    payment.status = 'REFUND';
+                    transaction.status = 'REFUND';
+                }else{
+                    payment.status = newState;
+                    transaction.status = 'REJECTED';
+                }
             }
 
             // Finally, save the transaction

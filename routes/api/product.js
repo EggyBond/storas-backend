@@ -37,6 +37,8 @@ router.get('/detail', async (req, res) => {
             name: product.name,
             description: product.description,
             city: product.city,
+            address: product.address,
+            province: product.province,
             warehouseType: product.warehouseType,
             images: product.images,
             price: product.price,
@@ -98,6 +100,9 @@ router.get('/list', passport.authenticate('jwt', {
 router.get('/listAll', async (req, res) => {
     const warehouseType = req.query.warehouseType;
     const ownedOnly = req.query.ownedOnly || false;
+    const page = req.query.page;
+    const limit = req.query.limit;
+
     let whereQuery = {};
     if (warehouseType) {
         whereQuery['warehouseType'] = warehouseType;
@@ -105,8 +110,9 @@ router.get('/listAll', async (req, res) => {
 
     whereQuery['deleted'] = false;
     
+
     const productList = await Product.findAll({
-        where: whereQuery
+        where: whereQuery, offset: page, limit: limit
     });
 
     const productsResult = [];
@@ -155,7 +161,9 @@ router.post('/upsert', passport.authenticate('jwt', {
         electricity,
         total_floor,
         pdam,
-        additional_facility
+        additional_facility,
+        address,
+        province
     } = req.body;
 
 
@@ -173,7 +181,7 @@ router.post('/upsert', passport.authenticate('jwt', {
             }
         }
 
-        var input_query = 'INSERT INTO "Products" ("ownerId", name, description, "warehouseType", images, price, "geoLng", "geoLat", city, district, building_area, electricity, total_floor, pdam, additional_facility, "createdAt" , "updatedAt" ) VALUES ($1, $2, $3, $4 ,$5, $6 ,$7, $8 ,$9, $10, $11, $12, $13, $14 ,$15, NOW(), NOW()) returning id;';
+        var input_query = 'INSERT INTO "Products" ("ownerId", name, description, "warehouseType", images, price, "geoLng", "geoLat", city, district, building_area, electricity, total_floor, pdam, additional_facility, "createdAt" , "updatedAt", address, province ) VALUES ($1, $2, $3, $4 ,$5, $6 ,$7, $8 ,$9, $10, $11, $12, $13, $14 ,$15, NOW(), NOW(), $16, $17) returning id;';
         var values = [
             user.id,
             name,
@@ -189,7 +197,9 @@ router.post('/upsert', passport.authenticate('jwt', {
             electricity,
             total_floor,
             pdam,
-            additional_facility
+            additional_facility,
+            address,
+            province
         ]
 
         pool.query(input_query, values, (error, results) => {
@@ -308,7 +318,9 @@ router.put('/update', passport.authenticate('jwt', {
         electricity,
         total_floor,
         pdam,
-        additional_facility
+        additional_facility,
+        address,
+        province
     } = req.body;
 
 
@@ -328,7 +340,7 @@ router.put('/update', passport.authenticate('jwt', {
 
 
 
-        var update_query = 'UPDATE public."Products" SET "name"=$1, "ownerId"=$2, "city"=$3, "warehouseType"=$4, images=$5, "geoLng"=$6, "geoLat"=$7, price=$8, "updatedAt"=NOW(), description=$9, building_area=$10, electricity=$11, total_floor=$12, pdam=$13, additional_facility=$14, district=$15 WHERE id=$16;';
+        var update_query = 'UPDATE public."Products" SET "name"=$1, "ownerId"=$2, "city"=$3, "warehouseType"=$4, images=$5, "geoLng"=$6, "geoLat"=$7, price=$8, "updatedAt"=NOW(), description=$9, building_area=$10, electricity=$11, total_floor=$12, pdam=$13, additional_facility=$14, district=$15, address=$16, province=$17 WHERE id=$18;';
         var values = [
             name,
             user.id,
@@ -345,9 +357,10 @@ router.put('/update', passport.authenticate('jwt', {
             pdam,
             additional_facility,
             district,
+            address,
+            province,
             id
         ]
-        console.log("test",pdam)
         pool.query(update_query, values, (error, results) => {
             if (error) {
                 return res.status(400).json({
