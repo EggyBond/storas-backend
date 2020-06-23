@@ -678,7 +678,7 @@ router.post('/verifyOtp', passport.authenticate('jwt', {
         }else{
             return res.status(400).json({
                 success: false,
-                errorMessage: "Wrong OTP",
+                errorMessage: "User not found",
                 result: null
             });
         }
