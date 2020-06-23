@@ -75,77 +75,81 @@ router.post('/register', (req, res) => {
                                 const storage = firebaseAdmin.storage();
                                 const bucket = storage.bucket();
                                 var downloadUrl = ""
-                                const image = req.body.imagePayload.image,
+                                if(req.body.imagePayload){
+                                    const image = req.body.imagePayload.image,
                                     mimeType = image.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)[1],
                                     fileName = req.body.imagePayload.fileName + new Date().getTime() + "." + mimeTypes.detectExtension(mimeType),
                                     base64EncodedImageString = image.replace(/^data:image\/\w+;base64,/, ''),
                                     imageBuffer = Buffer.from(base64EncodedImageString, 'base64');
 
-                                // Upload the image to the bucket
-                                const file = bucket.file('asset/images/' + fileName);
+                                    // Upload the image to the bucket
+                                    const file = bucket.file('asset/images/' + fileName);
 
-                                const uuid = UUID();
-                                file.save(imageBuffer, {
-                                    metadata: {
-                                        contentType: mimeType,
-                                        firebaseStorageDownloadTokens: uuid
-                                    },
-                                    public: true
-                                }, async function (error) {
-                                    if (error) {
-                                        return res.status(500).json({
-                                            success: false,
-                                            errorMessage: "Unable to upload image"
-                                        });
-                                    }
-
-                                    downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media&token=${uuid}`;
-                                    console.log(downloadUrl)
-                                    User.create({
-                                        fullName: fullName,
-                                        email: email,
-                                        phoneNo: phoneNo,
-                                        password: hash,
-                                        type: type,
-                                        verificationStatus: false,
-                                        id_picture : downloadUrl
-    
-                                    }).then(user => {
-                                        let otp = generateOTP();
-                                        let expiredTime = new Date();
-                                        expiredTime.setTime(expiredTime.getTime() + (1*60*60*1000));
-                                        UserOtps.create({
-                                            userId: user.id,
-                                            otp: otp,
-                                            expired: expiredTime,
-                                        }).then((userOtp)=>{
-                                            var mailOptions = {
-                                                from: 'storas.id@gmail.com',
-                                                to: email,
-                                                subject: 'OTP',
-                                                text: `Berikut ini adalah otp ${otp}`
-                                            };
-                                            nodemailer.sendMail(mailOptions, function(error, info){
-                                                if (error) {
-                                                    console.log(error);
-                                                } else {
-                                                    console.log('Email sent: ' + info.response);
-                                                }
+                                    const uuid = UUID();
+                                    file.save(imageBuffer, {
+                                        metadata: {
+                                            contentType: mimeType,
+                                            firebaseStorageDownloadTokens: uuid
+                                        },
+                                        public: true
+                                    }, async function (error) {
+                                        if (error) {
+                                            return res.status(500).json({
+                                                success: false,
+                                                errorMessage: "Unable to upload image"
                                             });
-                                        })
-                                        return res.status(201).json({
-                                            success: true,
-                                            errorMessage: null,
-                                            result: null
+                                        }
+
+                                        downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media&token=${uuid}`;
+
+                                    });   
+                                }
+ 
+
+                                User.create({
+                                    fullName: fullName,
+                                    email: email,
+                                    phoneNo: phoneNo,
+                                    password: hash,
+                                    type: type,
+                                    verificationStatus: false,
+                                    id_picture : downloadUrl
+
+                                }).then(user => {
+                                    let otp = generateOTP();
+                                    let expiredTime = new Date();
+                                    expiredTime.setTime(expiredTime.getTime() + (1*60*60*1000));
+                                    UserOtps.create({
+                                        userId: user.id,
+                                        otp: otp,
+                                        expired: expiredTime,
+                                    }).then((userOtp)=>{
+                                        var mailOptions = {
+                                            from: 'storas.id@gmail.com',
+                                            to: email,
+                                            subject: 'OTP',
+                                            text: `Berikut ini adalah otp ${otp}`
+                                        };
+                                        nodemailer.sendMail(mailOptions, function(error, info){
+                                            if (error) {
+                                                console.log(error);
+                                            } else {
+                                                console.log('Email sent: ' + info.response);
+                                            }
                                         });
-                                    }).catch(err => {
-                                        return res.status(500).json({
-                                            success: false,
-                                            errorMessage: "Unexpected Server Error",
-                                            result: null
-                                        });
+                                    })
+                                    return res.status(201).json({
+                                        success: true,
+                                        errorMessage: null,
+                                        result: null
                                     });
-                                });     
+                                }).catch(err => {
+                                    return res.status(500).json({
+                                        success: false,
+                                        errorMessage: "Unexpected Server Error",
+                                        result: null
+                                    });
+                                });
                             });
                         });
                     }
