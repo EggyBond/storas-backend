@@ -144,6 +144,7 @@ router.post('/register', (req, res) => {
                                         result: null
                                     });
                                 }).catch(err => {
+                                    console.log(err)
                                     return res.status(500).json({
                                         success: false,
                                         errorMessage: "Unexpected Server Error",
