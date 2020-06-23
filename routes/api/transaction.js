@@ -308,7 +308,7 @@ router.delete('/deleteManualTransaction', passport.authenticate('jwt', {
 router.get('/list', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
-    
+    const filter = Object.keys(req.query);
     const query = req.query;
     let whereQuery = {};
 
