@@ -6,6 +6,8 @@ const cors = require('cors');
 const passport = require('passport');
 const config = require('config');
 const serverless = require('serverless-http');
+var multer = require('multer');
+var upload = multer();
 
 // Initialize the app
 const app = express();
@@ -19,8 +21,12 @@ if(config.util.getEnv('NODE_ENV') !== 'test') {
 // Middlewares
 // Form Data Middleware
 app.use(bodyParser.urlencoded({
-    extended: false
+    extended: true
 }));
+
+// for parsing multipart/form-data
+app.use(upload.array()); 
+app.use(express.static('public'));
 
 // Json Body Middleware
 app.use(bodyParser.json({

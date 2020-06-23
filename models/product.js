@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     geoLng: DataTypes.DOUBLE,
     geoLat: DataTypes.DOUBLE,
     price: DataTypes.INTEGER,
+    rating: DataTypes.FLOAT,
     decimalPoint: DataTypes.INTEGER,
     building_area: DataTypes.INTEGER,
     electricity: DataTypes.INTEGER,

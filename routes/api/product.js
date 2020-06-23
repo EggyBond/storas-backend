@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../../models').Product;
+const UserReviews = require('../../models').UserReviews;
 const City = require('../../models').City;
 const passport = require('passport');
 
@@ -120,7 +121,7 @@ router.get('/listAll', async (req, res) => {
 
     return res.status(200).json({
         result: {
-            products: productList
+            products: productsResult
         },
         success: true,
         errorMessage: null
@@ -388,6 +389,90 @@ router.put('/update', passport.authenticate('jwt', {
     }
 
 });
+
+/**
+ * @route POST api/app/transaction/checkout
+ * @desc Checkout Transaction
+ * @access Private
+ */
+router.post('/reviewProduct', async (req, res) => {
+
+    const {
+        description,
+        email,
+        name,
+        productId,
+        rating,
+        title
+    } = req.body;
+
+    const product = await Product.findByPk(productId);
+    
+    if (!product) {
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Product is no longer available"
+        });
+    }
+
+    try{
+        await UserReviews.create({
+            productId: product.id,
+            description: description,
+            email: email,
+            name: name,
+            title: title,
+            rating: rating,
+        })
+        // let userReview = await UserReviews.findAll({
+        //     attributes: [[sequelize.fn('sum', sequelize.col('rating')), 'ratingTotal'], [sequelize.fn('count', sequelize.col('rating')), 'total']],
+        //     group : ['UserReviews.rating'],
+        //     where : {
+        //         productId: prd.id
+        //     }
+        // });
+        let userReviewCount = await UserReviews.count({
+            where : {
+                productId: productId
+            }
+        });
+        let userReviewTotal =  await UserReviews.sum('rating',{
+            where: {
+                productId: productId
+            }
+        })
+
+
+        let ratingTotal = userReviewTotal/userReviewCount;
+        await Product.update({
+            rating: ratingTotal
+          }, {
+            where: {
+              id: productId
+            }
+          })
+
+        return res.status(201).json({
+            data:{
+                userReviewCount,
+                userReviewTotal
+            },
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        console.log(e)
+        return res.status(400).json({
+            success: false,
+            errorMessage: e
+        });
+    }
+
+});
+
 
 
 module.exports = router;

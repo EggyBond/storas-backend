@@ -12,6 +12,8 @@ const mimeTypes = require('mimetypes');
 const {v4: UUID} = require('uuid');
 const db = require("../../models/index");
 const moment = require('moment'); 
+const multer = require('multer');
+var upload = multer();
 /**
  * @route GET api/app/transaction/detail
  * @desc Get transaction detail
@@ -653,12 +655,14 @@ router.post('/manualInput', async (req, res) => {
  * @desc Submit Payment
  * @access Private
  */
-router.post('/submitPayment',  async (req, res) => {
+router.post('/submitPayment', upload.single('image'), async (req, res) => {
     const {
         transactionId,
         image
     } = req.body;
-    console.log(req)
+    const file2 = req.file;
+    console.log(file2)
+    console.log(req.body)
     const transaction = await Transaction.findOne({
         where: {
             id: transactionId,
