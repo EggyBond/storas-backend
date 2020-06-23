@@ -186,7 +186,11 @@ router.get('/detail', passport.authenticate('jwt', {
                     lng: product.geoLng,
                     lat: product.geoLat
                 },
-                additional_facility: product.additional_facility
+                additional_facility: product.additional_facility,
+                building_area: product.building_area,
+                electricity: product.electricity,
+                total_floor: product.total_floor,
+                pdam: product.pdam,
             },
             paymentList: paymentList[0],
             billingDetail: billingDetail[0]
