@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../../models').Product;
 const UserReviews = require('../../models').UserReviews;
+const UserWhistlists = require('../../models').UserWhistlists;
 const City = require('../../models').City;
 const passport = require('passport');
 
