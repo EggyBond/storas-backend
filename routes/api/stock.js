@@ -101,7 +101,7 @@ router.get('/list', passport.authenticate('jwt', {
 
     const {
         productId
-    } = req.body;
+    } = req.query;
 
     const stocks = await Stock.findAll(
         {
