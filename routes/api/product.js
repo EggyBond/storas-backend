@@ -99,33 +99,45 @@ router.get('/list', passport.authenticate('jwt', {
 });
 
 router.get('/listAll', async (req, res) => {
-    const warehouseType = req.query.warehouseType;
-    const ownedOnly = req.query.ownedOnly || false;
-    const page = req.query.page;
     const limit = req.query.limit;
-
+    const page = req.query.page;
+    const filter = Object.keys(req.query);
+    const query = req.query;
     let whereQuery = {};
-    if (warehouseType) {
-        whereQuery['warehouseType'] = warehouseType;
+
+    for(var i = 0; i < filter.length; i++){
+        if(filter[i] != "page" && filter[i] != "limit"){
+            whereQuery[filter[i]] = query[filter[i]]
+        }
     }
+    
+    // if (warehouseType) {
+    //     whereQuery['warehouseType'] = warehouseType;
+    // }
 
     whereQuery['deleted'] = false;
     
+    try{
+        const productList = await Product.findAll({
+            where: whereQuery, offset: page, limit: limit
+        });
+    
+    
+        return res.status(200).json({
+            result: {
+                products: productList
+            },
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "Unknown Error"
+        });
+    }
 
-    const productList = await Product.findAll({
-        where: whereQuery, offset: page, limit: limit
-    });
-
-    const productsResult = [];
-
-
-    return res.status(200).json({
-        result: {
-            products: productList
-        },
-        success: true,
-        errorMessage: null
-    });
 });
 
 

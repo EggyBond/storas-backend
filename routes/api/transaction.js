@@ -308,9 +308,15 @@ router.delete('/deleteManualTransaction', passport.authenticate('jwt', {
 router.get('/list', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
-
+    
+    const query = req.query;
     let whereQuery = {};
 
+    for(var i = 0; i < filter.length; i++){
+        if(filter[i] != "page"){
+            whereQuery[filter[i]] = query[filter[i]]
+        }
+    }
     switch (user.type) {
         case 'PRODUCT_OWNER':
             whereQuery['ownerId'] = user.id;
@@ -364,7 +370,10 @@ router.get('/list', passport.authenticate('jwt', {
                 id: product.id,
                 name: product.name,
                 warehouseType: product.warehouseType,
-                price: product.price
+                price: product.price,
+                images: product.images,
+                district: product.district,
+                city: product.city,
             },
             transactionTime: localTransactionTime
         }
