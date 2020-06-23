@@ -125,7 +125,8 @@ router.get('/list', passport.authenticate('jwt', {
                 quantity: stx.quantity,
                 customerId: stx.customerId,
                 description: stx.description,
-                price: stx.price
+                price: stx.price,
+                category: stx.category
             }
         )
     }
