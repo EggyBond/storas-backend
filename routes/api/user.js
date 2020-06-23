@@ -651,36 +651,27 @@ router.post('/verifyOtp', passport.authenticate('jwt', {
     
     UserOtps.findOne({
         where: {
-            userId: user.id
+            userId: user.id,
+            otp: otp
         }
     }).then(userOtp => {
         if(userOtp){
-            console.log(userOtp.dataValues)
-            console.log(otp)
-            if(otp == userOtp.dataValues.otp){
-                User.update({
-                    verificationStatus: true,
-                },{
-                    where: {
-                      id: user.id
-                    }
-                    }).then(user => {
-                    return res.status(200).json({
-                        success: true,
-                        errorMessage: null
-                    })
-                });
-            }else{
-                return res.status(400).json({
-                    success: false,
-                    errorMessage: "Wrong OTP",
-                    result: null
-                });
-            }
+            User.update({
+                verificationStatus: true,
+            },{
+                where: {
+                  id: user.id
+                }
+                }).then(user => {
+                return res.status(200).json({
+                    success: true,
+                    errorMessage: null
+                })
+            });
         }else{
             return res.status(400).json({
                 success: false,
-                errorMessage: "User not found",
+                errorMessage: "Wrong OTP",
                 result: null
             });
         }
