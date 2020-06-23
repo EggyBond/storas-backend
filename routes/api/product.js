@@ -121,7 +121,7 @@ router.get('/listAll', async (req, res) => {
 
     return res.status(200).json({
         result: {
-            products: productsResult
+            products: productList
         },
         success: true,
         errorMessage: null
