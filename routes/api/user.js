@@ -655,6 +655,8 @@ router.post('/verifyOtp', passport.authenticate('jwt', {
         }
     }).then(userOtp => {
         if(userOtp){
+            console.log(userOtp.dataValues)
+            console.log(otp)
             if(otp == userOtp.dataValues.otp){
                 User.update({
                     verificationStatus: true,
