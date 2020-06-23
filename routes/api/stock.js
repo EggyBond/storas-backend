@@ -78,7 +78,6 @@ router.get('/detail', passport.authenticate('jwt', {
             errorMessage: null
         });
     }
-  
 });
 
 /**
@@ -163,7 +162,9 @@ router.post('/in', passport.authenticate('jwt', {
         description,
         quantity,
         courierId,
-        productId
+        productId,
+        category,
+        price
     } = req.body;
 
     try {
@@ -196,8 +197,6 @@ router.post('/in', passport.authenticate('jwt', {
             currentId = id
         }
 
-        
-
         const [record, created] = await Stock.upsert({
                 id: currentId,
                 customerId: user.id,
@@ -206,7 +205,9 @@ router.post('/in', passport.authenticate('jwt', {
                 quantity: currentStock,
                 receiptNo,
                 courierId,
-                productId
+                productId,
+                category,
+                price
             },
             {
                 returning: true
@@ -231,7 +232,6 @@ router.post('/in', passport.authenticate('jwt', {
     }
 
 });
-
 
 /**
  * @route GET api/app/stock/out
@@ -350,6 +350,28 @@ router.get('/courierList', async (req, res) => {
     return res.status(200).json({
         result: {
             couriers: courierResult,
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+/**
+ * @route GET api/app/stock/courierList
+ * @desc Get List of Couriers
+ * @access Private
+ */
+router.get('/stockCategory', async (req, res) => {
+    var category=[
+        "Bahan Baku",
+        "Barang Dalam Proses",
+        "Barang Jadi",
+        "Barang Suplai",
+        "Barang Dagangan"
+    ]
+    return res.status(200).json({
+        result: {
+            category: category,
         },
         success: true,
         errorMessage: null
