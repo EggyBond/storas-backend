@@ -530,6 +530,35 @@ router.post('/checkout', passport.authenticate('jwt', {
         total
     } = req.body;
 
+    const { Op } = require("sequelize");
+    const checkTransaction = await Transaction.findAll(
+        {
+            where: {
+                productId: item,
+                status: {
+                    [Op.not]: "REJECTED",
+                    [Op.not]: "CANCELED",
+                    [Op.not]: "REFUND",
+                },
+                start_date: {
+                    [Op.lte]: moment(endDate)
+                },
+                end_date: {
+                    [Op.gte]: moment(startDate)
+                }
+            }
+        }
+    );       
+
+    if(checkTransaction.length > 0){
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Date not available"
+        });
+    }
     const product = await Product.findByPk(item);
     
     if (!product.active) {
@@ -655,7 +684,7 @@ router.post('/manualInput', async (req, res) => {
  * @desc Submit Payment
  * @access Private
  */
-router.post('/submitPayment', upload.single('image'), async (req, res) => {
+router.post('/submitPayment', upload.single(), async (req, res) => {
     const {
         transactionId,
         image

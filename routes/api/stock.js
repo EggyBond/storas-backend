@@ -100,10 +100,15 @@ router.get('/list', passport.authenticate('jwt', {
         });
     }
 
+    const {
+        productId
+    } = req.body;
+
     const stocks = await Stock.findAll(
         {
             where: {
-                customerId: user.id
+                customerId: user.id,
+                productId: productId
             } 
         }
     );
@@ -119,7 +124,7 @@ router.get('/list', passport.authenticate('jwt', {
                 itemName: stx.itemName,
                 receiptNo: stx.receiptNo,
                 quantity: stx.quantity,
-                customerId: stx.customerId
+                customerId: stx.customerId,
             }
         )
     }
@@ -157,7 +162,8 @@ router.post('/in', passport.authenticate('jwt', {
         itemName,
         description,
         quantity,
-        courierId
+        courierId,
+        productId
     } = req.body;
 
     try {
@@ -176,7 +182,8 @@ router.post('/in', passport.authenticate('jwt', {
 
         const existingStock = await Stock.findAll({
             where: {
-                    itemName: itemName
+                    itemName: itemName,
+                    productId: productId
                 } 
             }
         );
@@ -198,7 +205,8 @@ router.post('/in', passport.authenticate('jwt', {
                 description,
                 quantity: currentStock,
                 receiptNo,
-                courierId
+                courierId,
+                productId
             },
             {
                 returning: true
@@ -250,7 +258,8 @@ router.post('/out', passport.authenticate('jwt', {
         itemName,
         description,
         quantity,
-        courierId
+        courierId,
+        productId
     } = req.body;
 
     try {
@@ -269,7 +278,8 @@ router.post('/out', passport.authenticate('jwt', {
 
         const existingStock = await Stock.findAll({
             where: {
-                    itemName: itemName
+                    itemName: itemName,
+                    productId: productId
                 } 
             }
         );
