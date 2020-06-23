@@ -8,7 +8,8 @@ module.exports = {
                 'rating',
                 {
                   type: Sequelize.INTEGER,
-                  allowNull: true,
+                  allowNull: false,
+                  defaultValue: 0
                 },
               )
         ]);

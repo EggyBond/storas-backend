@@ -103,25 +103,36 @@ router.get('/listAll', async (req, res) => {
     const page = req.query.page;
     const filter = Object.keys(req.query);
     const query = req.query;
+    const sort = req.query.sort;
     let whereQuery = {};
-
+    let order = [];
     for(var i = 0; i < filter.length; i++){
-        if(filter[i] != "page" && filter[i] != "limit"){
+        if(filter[i] != "page" && filter[i] != "limit" && filter[i] != "sort" && filter[i] != "facility"){
             whereQuery[filter[i]] = query[filter[i]]
         }
     }
-    
-    // if (warehouseType) {
-    //     whereQuery['warehouseType'] = warehouseType;
-    // }
 
     whereQuery['deleted'] = false;
     
+
+    if(sort == "PriceHighToLow"){
+        order.push(['price', 'desc'])
+    }else if(sort == "PriceLowToHigh"){
+        order.push(['price', 'asc'])
+    }else if(sort == "Newest"){
+        order.push(['createdAt', 'desc'])
+    }else if(sort == "AscOrder"){
+        order.push(['name', 'asc'])
+    }else if(sort == "DescOrder"){
+        order.push(['name', 'desc'])
+    }else if(sort == "Rating"){
+        order.push(['rating', 'desc'])
+    }
+
     try{
         const productList = await Product.findAll({
-            where: whereQuery, offset: page, limit: limit
+            where: whereQuery, offset: page, limit: limit, order: order
         });
-    
     
         return res.status(200).json({
             result: {
@@ -458,7 +469,7 @@ router.post('/reviewProduct', async (req, res) => {
         })
 
 
-        let ratingTotal = userReviewTotal/userReviewCount;
+        let ratingTotal = Math.round(userReviewTotal/userReviewCount);
         await Product.update({
             rating: ratingTotal
           }, {
@@ -468,10 +479,7 @@ router.post('/reviewProduct', async (req, res) => {
           })
 
         return res.status(201).json({
-            data:{
-                userReviewCount,
-                userReviewTotal
-            },
+            data: null,
             success: true,
             errorMessage: null
         });
