@@ -494,6 +494,188 @@ router.post('/reviewProduct', async (req, res) => {
 
 });
 
+/**
+ * @route POST api/app/transaction/checkout
+ * @desc Checkout Transaction
+ * @access Private
+ */
+router.post('/addToWishlist', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
 
+    const {
+        productId,
+    } = req.body;
+
+    const product = await Product.findByPk(productId);
+    
+    if (!product) {
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Product is no longer available"
+        });
+    }
+
+    const wishlist = await UserWhistlists.findAll({
+        where: {
+            productId: productId,
+            customerId: user.id,
+        }
+    });
+
+    if(wishlist.length > 0){
+        return res.status(400).json({
+            success: false,
+            errorMessage: "Already wished"
+        });
+    }
+
+    try{
+        await UserWhistlists.create({
+            productId: productId,
+            customerId: user.id,
+        })
+
+        return res.status(201).json({
+            data: null,
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        return res.status(400).json({
+            success: false,
+            errorMessage: e
+        });
+    }
+
+});
+
+/**
+ * @route POST api/app/transaction/checkout
+ * @desc Checkout Transaction
+ * @access Private
+ */
+router.post('/removeWishlist', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+
+    const {
+        productId,
+    } = req.body;
+
+    const product = await Product.findByPk(productId);
+    
+    if (!product) {
+        return res.status(403).json({
+            result: {
+                transactionId: null
+            },
+            success: false,
+            errorMessage: "Product is no longer available"
+        });
+    }
+
+    try{
+        await UserWhistlists.destroy({
+            where: {
+                productId: productId,
+                customerId: user.id,
+            }
+        })
+        return res.status(201).json({
+            data: null,
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        console.log(e)
+        return res.status(400).json({
+            success: false,
+            errorMessage: e
+        });
+    }
+
+});
+
+router.get('/wishlist', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const limit = req.query.limit;
+    const page = req.query.page;
+    const filter = Object.keys(req.query);
+    const query = req.query;
+    const sort = req.query.sort;
+
+    const wishlist = await UserWhistlists.findAll({
+        where: {
+            customerId: user.id
+        }
+    });
+
+    let wishlistId =[];
+
+    for (const wish of wishlist) {
+        wishlistId.push(wish.productId)
+    }
+
+    if(wishlist.length == 0){
+        return res.status(200).json({
+            result: {
+                products: []
+            },
+            success: true,
+            errorMessage: null
+        });
+    }
+
+    try{
+        let whereQuery = {};
+        let order = [];
+        for(var i = 0; i < filter.length; i++){
+            if(filter[i] != "page" && filter[i] != "limit" && filter[i] != "sort" && filter[i] != "facility"){
+                whereQuery[filter[i]] = query[filter[i]]
+            }
+        }
+        whereQuery['deleted'] = false;
+        whereQuery['id'] = wishlistId
+
+        if(sort == "PriceHighToLow"){
+            order.push(['price', 'desc'])
+        }else if(sort == "PriceLowToHigh"){
+            order.push(['price', 'asc'])
+        }else if(sort == "Newest"){
+            order.push(['createdAt', 'desc'])
+        }else if(sort == "AscOrder"){
+            order.push(['name', 'asc'])
+        }else if(sort == "DescOrder"){
+            order.push(['name', 'desc'])
+        }else if(sort == "Rating"){
+            order.push(['rating', 'desc'])
+        }
+        
+        const productList = await Product.findAll({
+            where: whereQuery, offset: page, limit: limit, order: order
+        });
+    
+        return res.status(200).json({
+            result: {
+                products: productList
+            },
+            success: true,
+            errorMessage: null
+        });
+    }catch(e){
+        console.log(e)
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "Unknown Error"
+        });
+    }
+
+});
 
 module.exports = router;
