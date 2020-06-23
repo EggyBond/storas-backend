@@ -653,12 +653,102 @@ router.post('/manualInput', async (req, res) => {
  * @desc Submit Payment
  * @access Private
  */
-router.post('/submitPayment', passport.authenticate('jwt', {
+router.post('/submitPayment',  async (req, res) => {
+    const {
+        transactionId,
+        image
+    } = req.body;
+    console.log(req)
+    const transaction = await Transaction.findOne({
+        where: {
+            id: transactionId,
+            customerId: 2
+        }
+    });
+
+    if (!transaction) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "Transaction not found."
+        });
+    }
+
+    const storage = firebaseAdmin.storage();
+    const bucket = storage.bucket();
+
+    const imageData = paymentProof,
+        mimeType = imageData.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)[1],
+        fileName = 2 + "-" + transaction.id + "-" + new Date().getTime() + "." + mimeTypes.detectExtension(mimeType),
+        base64EncodedImageString = imageData.replace(/^data:image\/\w+;base64,/, ''),
+        imageBuffer = Buffer.from(base64EncodedImageString, 'base64');
+
+
+    // Upload the image to the bucket
+    const file = bucket.file('asset/payment/' + fileName);
+
+    const uuid = UUID();
+    file.save(imageBuffer, {
+        metadata: {
+            contentType: mimeType,
+            firebaseStorageDownloadTokens: uuid
+        },
+        public: true
+    }, async function (error) {
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                errorMessage: "Unable to upload payment proof"
+            });
+        }
+
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media&token=${uuid}`;
+
+        
+        const newPayment = await Payment.update({
+            status: "PAID",
+            paymentProofUrl: imageUrl
+          }, {
+            where: {
+              transactionId: transactionId
+            }
+          }).then(function() {
+            callback('success');
+          });
+
+        if (newPayment.id) {
+            transaction.status = 'PENDING_VERIFICATION';
+            await transaction.save();
+
+            return res.status(201).json({
+                result: {
+                    transactionId: transaction.id,
+                    paymentId: newPayment.id
+                },
+                success: true,
+                errorMessage: null
+            });
+        } else {
+            return res.status(500).json({
+                result: null,
+                success: false,
+                errorMessage: "Unexpected error when creating new payment"
+            });
+        }
+    });
+});
+
+/**
+ * @route POST api/app/transaction/submitPayment
+ * @desc Submit Payment
+ * @access Private
+ */
+router.post('/submitPayment2', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
     const {
         transactionId,
-        paymentProof,
+        image2,
         bankName,
         accountName,
         accountNumber
@@ -749,6 +839,7 @@ router.post('/submitPayment', passport.authenticate('jwt', {
         }
     });
 });
+
 
 /**
  * @route POST api/app/transaction/verifyPayment
