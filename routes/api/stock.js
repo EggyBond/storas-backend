@@ -124,6 +124,8 @@ router.get('/list', passport.authenticate('jwt', {
                 receiptNo: stx.receiptNo,
                 quantity: stx.quantity,
                 customerId: stx.customerId,
+                description: stx.description,
+                price: stx.price
             }
         )
     }
