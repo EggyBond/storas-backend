@@ -335,7 +335,6 @@ router.get('/list', passport.authenticate('jwt', {
     }
     const { Op } = require("sequelize");
 
-    whereQuery["status"] = { [Op.not]: 'MANUAL'}
     const transactions = await Transaction.findAll(
         {
             where: whereQuery
