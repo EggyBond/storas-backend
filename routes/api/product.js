@@ -33,6 +33,12 @@ router.get('/detail', async (req, res) => {
         })
     }
 
+    let userReviewCount = await UserReviews.count({
+        where : {
+            productId: productId
+        }
+    });
+
     return res.status(200).json({
         result: {
             id: product.id,
@@ -53,7 +59,9 @@ router.get('/detail', async (req, res) => {
             electricity: product.electricity,
             total_floor: product.total_floor,
             pdam: product.pdam,
-            additional_facility: product.additional_facility
+            additional_facility: product.additional_facility,
+            rating: product.rating,
+            totalReview : userReviewCount
         },
         
         success: true,
