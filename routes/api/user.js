@@ -128,7 +128,7 @@ router.post('/register', (req, res) => {
                                             from: 'storas.id@gmail.com',
                                             to: email,
                                             subject: 'OTP',
-                                            text: `Berikut ini adalah otp ${otp}`
+                                            text: `Please input the OTP to authenticate your account. ${return_otp}`
                                         };
                                         nodemailer.sendMail(mailOptions, function(error, info){
                                             if (error) {

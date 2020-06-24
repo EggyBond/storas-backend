@@ -25,7 +25,6 @@ const pool = new Pool({
 router.get('/detail', async (req, res) => {
     const productId = req.query.id;
     const product = await Product.findByPk(productId);
-
     if (product === null) {
         return res.status(404).json({
             success: false,
@@ -41,6 +40,17 @@ router.get('/detail', async (req, res) => {
         }
     });
 
+    // const wishlist = await UserWhistlists.findAll({
+    //     where: {
+    //         productId: productId,
+    //         customerId: user.id,
+    //     }
+    // });
+
+    // let isFavorite = false;
+    // if(wishlist.length > 0){
+    //     isFavorite = true
+    // }
 
     let arrImages = JSON.parse(product.images)    
     let arrAdditional_facility = JSON.parse(product.additional_facility)
