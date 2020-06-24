@@ -163,6 +163,8 @@ router.get('/detail', passport.authenticate('jwt', {
     // TODO: Should do this process in frontend instead
     const transactionTime = new Date(transaction.createdAt);
     const localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
+    let arrImages = JSON.parse(product.images)    
+    let arrAdditional_facility = JSON.parse(product.additional_facility)
 
     return res.status(200).json({
         result: {
@@ -191,6 +193,8 @@ router.get('/detail', passport.authenticate('jwt', {
                 electricity: product.electricity,
                 total_floor: product.total_floor,
                 pdam: product.pdam,
+                arrImages : arrImages,
+                arrAdditional_facility : arrAdditional_facility
             },
             paymentList: paymentList[0],
             billingDetail: billingDetail[0]
@@ -322,6 +326,105 @@ router.get('/list', passport.authenticate('jwt', {
             whereQuery[filter[i]] = query[filter[i]]
         }
     }
+
+    switch (user.type) {
+        case 'PRODUCT_OWNER':
+            whereQuery['ownerId'] = user.id;
+            break;
+        case 'CUSTOMER':
+            whereQuery['customerId'] = user.id;
+            break;
+        case 'ADMIN':
+            whereQuery = {};
+            break;
+    }
+    const { Op } = require("sequelize");
+    whereQuery["status"] = { [Op.not]: 'MANUAL'}
+    const transactions = await Transaction.findAll(
+        {
+            where: whereQuery
+        }
+    );
+    const transactionsResult = [];
+
+    for (const trx of transactions) {
+        let product = await Product.findByPk(trx.productId);
+
+        // TODO: Should do this process in frontend instead
+        let transactionTime = new Date(trx.createdAt);
+        let localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
+
+        let paymentList = {};
+        if ( trx != null) {
+            paymentList = await Payment.findAll(
+                {
+                    where: {
+                        transactionId: trx.id
+                    }
+                }
+            );
+            // TODO: For now this is hardcoded to find the first paymentDestination
+        }
+        let arrImages = JSON.parse(product.images)    
+        let arrAdditional_facility = JSON.parse(product.additional_facility)    
+        var dataResult = {
+            id: trx.id,
+            status: trx.status,
+            totalAmount: trx.totalAmount,
+            customerId: trx.customerId,
+            ownerId: trx.ownerId,
+            warehouseId: product.id,
+            warehouseName: product.name,
+            startDate: trx.start_date,
+            endDate: trx.end_date,
+            productInfo: {
+                id: product.id,
+                name: product.name,
+                warehouseType: product.warehouseType,
+                price: product.price,
+                images: product.images,
+                district: product.district,
+                city: product.city,
+                arrImages : arrImages,
+                arrAdditional_facility : arrAdditional_facility
+            },
+            transactionTime: localTransactionTime
+        }
+        if(paymentList.length > 0){
+            dataResult.paymentId = paymentList[0].dataValues.id
+        }
+    
+        transactionsResult.push(dataResult)
+    }
+    return res.status(200).json({
+        result: {
+            transactions: transactionsResult
+        },
+        success: true,
+        errorMessage: null
+    });
+});
+
+/**
+ * @route GET api/app/transaction/list
+ * @desc Get transaction list
+ * @access Private
+ */
+router.get('/bookedList', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const filter = Object.keys(req.query);
+    const query = req.query;
+    let whereQuery = {};
+
+    for(var i = 0; i < filter.length; i++){
+        if(filter[i] != "page"){
+            whereQuery[filter[i]] = query[filter[i]]
+        }
+    }
+
+
+    whereQuery["status"] = 'BOOKED'
     switch (user.type) {
         case 'PRODUCT_OWNER':
             whereQuery['ownerId'] = user.id;
@@ -360,6 +463,8 @@ router.get('/list', passport.authenticate('jwt', {
             );
             // TODO: For now this is hardcoded to find the first paymentDestination
         }
+        let arrImages = JSON.parse(product.images)    
+        let arrAdditional_facility = JSON.parse(product.additional_facility)    
         var dataResult = {
             id: trx.id,
             status: trx.status,
@@ -378,6 +483,8 @@ router.get('/list', passport.authenticate('jwt', {
                 images: product.images,
                 district: product.district,
                 city: product.city,
+                arrImages : arrImages,
+                arrAdditional_facility : arrAdditional_facility
             },
             transactionTime: localTransactionTime
         }
@@ -395,6 +502,7 @@ router.get('/list', passport.authenticate('jwt', {
         errorMessage: null
     });
 });
+
 
 /**
  * @route POST api/app/transaction/checkout
