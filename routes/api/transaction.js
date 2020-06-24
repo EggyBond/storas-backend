@@ -26,7 +26,7 @@ var upload = multer();
 router.get('/dashboard', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
-
+    const { Op } = require("sequelize");
     let totalPayment = 0
     let totalBookedTransaction = 0
     let totalNotPaidTransaction = 0
@@ -37,7 +37,7 @@ router.get('/dashboard', passport.authenticate('jwt', {
     if(user.type == "ADMIN"){
         productList = await Product.findAll({where: {deleted: false}});
         totalproduct = productList.length;
-        transactionList = await Transaction.findAll();
+        transactionList = await Transaction.findAll({where: {status: {[Op.not]:'MANUAL'}}});
         totalTransaction = transactionList.length;
     }else{
         productList = await Product.findAll(
@@ -53,7 +53,8 @@ router.get('/dashboard', passport.authenticate('jwt', {
         transactionList = await Transaction.findAll(
             {
                 where: {
-                    ownerId: user.id,            
+                    ownerId: user.id,        
+                    status: {[Op.not]:'MANUAL'}   
                 }
             }
         );
