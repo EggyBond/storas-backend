@@ -1047,21 +1047,13 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
             if (newState === 'PAID') {
                 payment.status = newState;
                 transaction.status = 'BOOKED';
-                // 1a. Check if the totalAmount paid is greater or equal. If it less, then mark the transaction as PARTIALLY_PAID.
-                // const remainingAmount = transaction.totalAmount - payment.payableAmount;
-                // if (remainingAmount <= 0) {
-                //     transaction.status = 'ISSUED';
-                // } else {
-                //     transaction.status = 'PARTIALLY_PAID';
-                //     console.log(`Transaction for ${transaction.id} is PARTIALLY_PAID, amount to be paid is ${remainingAmount}`);
-                // }
             }
 
             // 2. For now, if the payment is rejected, the transaction will be cancelled. The customer need to rebook their transaction.
             if (newState === 'REJECTED') {
-                if(payment.status === 'PAID'){
+                if(payment.status === 'PAID' || transaction.status === 'REFUND OK' || payment.status === 'PENDING_VERIFICATION'){
                     payment.status = 'REFUND';
-                    transaction.status = 'REFUND';
+                    transaction.status = 'REFUND NOK';
                 }else{
                     payment.status = newState;
                     transaction.status = 'REJECTED';
@@ -1103,6 +1095,91 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
             result: null,
             success: false,
             errorMessage: `Bad request, this payment is already at the same state or in final state`
+        });
+    }
+});
+
+/**
+ * @route POST api/app/transaction/makeRefund
+ * @desc Payment Verification
+ * @access Private to Admin only
+ */
+router.post('/makeRefund', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+    const {
+        transactionId,
+        paymentId,
+        newState
+    } = req.body;
+
+    if (user.type !== 'ADMIN') {
+        return res.status(403).json({
+            result: null,
+            success: false,
+            errorMessage: "You're not authorized to use this API."
+        });
+    }
+
+    const transaction = await Transaction.findByPk(transactionId);
+
+    if (!transaction) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "Transaction not found."
+        });
+    }
+
+    const payment = await Payment.findOne({
+        where: {
+            id: paymentId,
+            transactionId
+        }
+    });
+
+    if (!payment) {
+        return res.status(404).json({
+            result: null,
+            success: false,
+            errorMessage: "No payment data for this transaction."
+        });
+    }
+
+    const trxSession = await db.sequelize.transaction();
+
+    try {
+        payment.status = 'REFUND';
+        transaction.status = 'REFUND OK';
+
+        // Finally, save the transaction
+        await payment.save({
+            transaction: trxSession
+        });
+        await transaction.save({
+            transaction: trxSession
+        });
+
+        // 3. Commit the transaction.
+        await trxSession.commit();
+        console.log(`New status for payment: ${payment.id} - ${payment.status} transaction: ${transaction.id} - ${transaction.status}`);
+
+        return res.status(200).json({
+            result: {
+                transactionId: transaction.id,
+                paymentId: payment.id
+            },
+            success: true,
+            errorMessage: null
+        });
+    } catch (e) {
+        console.log(`Transaction is aborted with exception: ${e}`);
+        await trxSession.rollback();
+
+        return res.status(500).json({
+            result: null,
+            success: false,
+            errorMessage: `Unexpected server error ${e.message}`
         });
     }
 });
