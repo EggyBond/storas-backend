@@ -693,112 +693,18 @@ router.post('/manualInput', async (req, res) => {
     });
 });
 
-/**
- * @route POST api/app/transaction/submitPayment
- * @desc Submit Payment
- * @access Private
- */
-router.post('/submitPayment', upload.single(), async (req, res) => {
-    const {
-        transactionId,
-        image
-    } = req.body;
-    const file2 = req.file;
-    console.log(file2)
-    console.log(req.body)
-    const transaction = await Transaction.findOne({
-        where: {
-            id: transactionId,
-            customerId: 2
-        }
-    });
-
-    if (!transaction) {
-        return res.status(404).json({
-            result: null,
-            success: false,
-            errorMessage: "Transaction not found."
-        });
-    }
-
-    const storage = firebaseAdmin.storage();
-    const bucket = storage.bucket();
-
-    const imageData = paymentProof,
-        mimeType = imageData.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)[1],
-        fileName = 2 + "-" + transaction.id + "-" + new Date().getTime() + "." + mimeTypes.detectExtension(mimeType),
-        base64EncodedImageString = imageData.replace(/^data:image\/\w+;base64,/, ''),
-        imageBuffer = Buffer.from(base64EncodedImageString, 'base64');
-
-
-    // Upload the image to the bucket
-    const file = bucket.file('asset/payment/' + fileName);
-
-    const uuid = UUID();
-    file.save(imageBuffer, {
-        metadata: {
-            contentType: mimeType,
-            firebaseStorageDownloadTokens: uuid
-        },
-        public: true
-    }, async function (error) {
-        if (error) {
-            return res.status(500).json({
-                success: false,
-                errorMessage: "Unable to upload payment proof"
-            });
-        }
-
-        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(file.name)}?alt=media&token=${uuid}`;
-
-        
-        const newPayment = await Payment.update({
-            status: "PAID",
-            paymentProofUrl: imageUrl
-          }, {
-            where: {
-              transactionId: transactionId
-            }
-          }).then(function() {
-            callback('success');
-          });
-
-        if (newPayment.id) {
-            transaction.status = 'PENDING_VERIFICATION';
-            await transaction.save();
-
-            return res.status(201).json({
-                result: {
-                    transactionId: transaction.id,
-                    paymentId: newPayment.id
-                },
-                success: true,
-                errorMessage: null
-            });
-        } else {
-            return res.status(500).json({
-                result: null,
-                success: false,
-                errorMessage: "Unexpected error when creating new payment"
-            });
-        }
-    });
-});
 
 /**
  * @route POST api/app/transaction/submitPayment
  * @desc Submit Payment
  * @access Private
  */
-router.post('/submitPayment2', passport.authenticate('jwt', {
+router.post('/submitPayment', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
     const {
         transactionId,
-        image2,
-        bankName,
-        accountName,
-        accountNumber
+        paymentProof
     } = req.body;
 
     const transaction = await Transaction.findOne({
@@ -848,27 +754,21 @@ router.post('/submitPayment2', passport.authenticate('jwt', {
 
         // TODO: For now this is hardcoded to find the first paymentDestination
         const paymentDestination = await PaymentDestination.findOne();
-
-        const newPayment = await Payment.create({
-            transactionId: transaction.id,
-            srcBankName: bankName,
-            srcAccountName: accountName,
-            srcAccountNumber: accountNumber,
-            dstBankName: paymentDestination.bankName,
-            dstAccountName: paymentDestination.accountName,
-            dstAccountNumber: paymentDestination.accountNumber,
-            paymentMethod: "BANK_TRANSFER", // Hardcoded to BANK_TRANSFER for now
-            payableAmount: transaction.totalAmount,
-            decimalPoint: transaction.decimalPoint,
-            currency: transaction.currency,
-            paymentProofUrl: imageUrl,
-            status: "PENDING_VERIFICATION",
-        });
-
-        if (newPayment.id) {
-            transaction.status = 'PENDING_VERIFICATION';
-            await transaction.save();
-
+        try{
+            const newPayment = await Payment.update({
+                paymentMethod: "BANK_TRANSFER",
+                paymentProofUrl: imageUrl,
+                status: "PENDING_VERIFICATION",
+            },{
+                where: {
+                  transactionId: transactionId
+                }});
+            await Transaction.update({
+                status: "PAID",
+            },{
+                where: {
+                    id: transactionId
+                }});
             return res.status(201).json({
                 result: {
                     transactionId: transaction.id,
@@ -877,13 +777,15 @@ router.post('/submitPayment2', passport.authenticate('jwt', {
                 success: true,
                 errorMessage: null
             });
-        } else {
+        }catch(e){
+            console.log(e)
             return res.status(500).json({
                 result: null,
                 success: false,
                 errorMessage: "Unexpected error when creating new payment"
             });
         }
+
     });
 });
 
@@ -937,8 +839,8 @@ router.post('/verifyPayment', passport.authenticate('jwt', {
 
     // 0. Check if new state is same as current state, or if it's already in a final state
     if ((newState !== payment.status) ||
-        (transaction.status === 'BOOKED') ||
-        (transaction.status === 'REJECTED')
+        (transaction.status === 'PAID') ||
+        (transaction.status === 'NOT PAID')
     ) {
         const trxSession = await db.sequelize.transaction();
 
