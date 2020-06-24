@@ -22,7 +22,76 @@ const pool = new Pool({
     port: 5432,
 })
 
-router.get('/detail', async (req, res) => {
+router.get('/detail', passport.authenticate('jwt', {
+    session: false
+}),async (req, res) => {
+    const productId = req.query.id;
+    const product = await Product.findByPk(productId);
+    if (product === null) {
+        return res.status(404).json({
+            success: false,
+            errorMessage: "Product not found"
+        })
+    }
+
+    const owner = await User.findByPk(product.ownerId);
+
+    let userReviewCount = await UserReviews.count({
+        where : {
+            productId: productId
+        }
+    });
+    
+    const wishlist = await UserWhistlists.findAll({
+        where: {
+            productId: productId,
+            customerId: user.id,
+        }
+    });
+    let isFavorite = false;
+    if(wishlist.length > 0){
+        isFavorite = true
+    }
+
+    let arrImages = JSON.parse(product.images)    
+    let arrAdditional_facility = JSON.parse(product.additional_facility)
+    return res.status(200).json({
+        result: {
+            id: product.id,
+            ownerPhone: owner.phoneNo,
+            ownerName: owner.fullName,
+            name: product.name,
+            description: product.description,
+            city: product.city,
+            address: product.address,
+            province: product.province,
+            warehouseType: product.warehouseType,
+            images: product.images,
+            price: product.price,
+            geoLocation: {
+                lng: product.geoLng,
+                lat: product.geoLat
+            },
+            district: product.district,
+            building_area: product.building_area,
+            electricity: product.electricity,
+            total_floor: product.total_floor,
+            pdam: product.pdam,
+            additional_facility: product.additional_facility,
+            rating: product.rating,
+            totalReview : userReviewCount,
+            arrImages : arrImages,
+            arrAdditional_facility : arrAdditional_facility,
+            isFavorite: isFavorite
+        },
+        
+        success: true,
+        errorMessage: null
+    });
+
+});
+
+router.get('/detailAll', async (req, res) => {
     const productId = req.query.id;
     const product = await Product.findByPk(productId);
     if (product === null) {
@@ -39,19 +108,7 @@ router.get('/detail', async (req, res) => {
             productId: productId
         }
     });
-
-    // const wishlist = await UserWhistlists.findAll({
-    //     where: {
-    //         productId: productId,
-    //         customerId: user.id,
-    //     }
-    // });
-
-    // let isFavorite = false;
-    // if(wishlist.length > 0){
-    //     isFavorite = true
-    // }
-
+    
     let arrImages = JSON.parse(product.images)    
     let arrAdditional_facility = JSON.parse(product.additional_facility)
     return res.status(200).json({
