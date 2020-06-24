@@ -317,6 +317,7 @@ router.delete('/deleteManualTransaction', passport.authenticate('jwt', {
 router.get('/list', passport.authenticate('jwt', {
     session: false
 }), async (req, res) => {
+    let page = req.query.page;
     const filter = Object.keys(req.query);
     const query = req.query;
     let whereQuery = {};
@@ -346,9 +347,15 @@ router.get('/list', passport.authenticate('jwt', {
         whereQuery["status"] = { [Op.not]: 'MANUAL'}
     }
     
+    let limit = undefined
+    if(page !== undefined){
+        limit = 10;
+        page = (page - 1) * limit; 
+    }
+
     const transactions = await Transaction.findAll(
         {
-            where: whereQuery
+            where: whereQuery, offset: page, limit: limit
         }
     );
     const transactionsResult = [];
