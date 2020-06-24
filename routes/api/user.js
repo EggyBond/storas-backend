@@ -138,11 +138,27 @@ router.post('/register', (req, res) => {
                                             }
                                         });
                                     })
-                                    return res.status(201).json({
-                                        success: true,
-                                        errorMessage: null,
-                                        result: null
-                                    });
+                                    const payload = {
+                                        id: user.id,
+                                        email: user.email,
+                                        phoneNo: user.phoneNo,
+                                        type: user.type,
+                                        fullName: user.fullName,
+                                        profilePicture: user.profile_picture
+                                    };
+                                    jwt.sign(payload, key, {
+                                        expiresIn: 604800
+                                    }, (err, token) => {
+                                        res.status(200).json({
+                                            success: true,
+                                            errorMessage: null,
+                                            result: {
+                                                userData: payload,
+                                                verificationStatus: user.verificationStatus,
+                                                authToken: `${token}`
+                                            }
+                                        });
+                                    })
                                 }).catch(err => {
                                     console.log(err)
                                     return res.status(500).json({
@@ -620,7 +636,7 @@ router.get('/resendOtp', passport.authenticate('jwt', {
             from: 'storas.id@gmail.com',
             to: user.email,
             subject: 'OTP',
-            text: `Berikut ini adalah otp ${return_otp}`
+            text: `Please input the OTP to authenticate your account. ${return_otp}`
         };
         nodemailer.sendMail(mailOptions, function(error, info){
             if (error) {
