@@ -14,6 +14,92 @@ const db = require("../../models/index");
 const moment = require('moment'); 
 const multer = require('multer');
 var upload = multer();
+
+
+
+/**
+ * @route GET api/app/transaction/Dashboard
+ * @desc Get transaction detail
+ * @access Private
+ */
+
+router.get('/dashboard', passport.authenticate('jwt', {
+    session: false
+}), async (req, res) => {
+
+    let totalPayment = 0
+    let totalBookedTransaction = 0
+    let totalNotPaidTransaction = 0
+    let totalproduct = 0
+    let totalTransaction = 0
+    let productList = []
+    let transactionList = []
+    if(user.type == "ADMIN"){
+        productList = await Product.findAll({where: {deleted: false}});
+        totalproduct = productList.length;
+        transactionList = await Transaction.findAll();
+        totalTransaction = transactionList.length;
+    }else{
+        productList = await Product.findAll(
+            {
+                where: {
+                    ownerId: user.id,
+                    deleted: false          
+                }
+            }
+        );
+        totalproduct = productList.length;
+    
+        transactionList = await Transaction.findAll(
+            {
+                where: {
+                    ownerId: user.id,            
+                }
+            }
+        );
+        totalTransaction = transactionList.length;
+    }
+
+
+
+    if(totalTransaction > 0){
+        totalPayment = transactionList.reduce((accumulator, currentValue) => {
+                if(currentValue.dataValues.status == "BOOKED"){
+                    return (accumulator + currentValue.dataValues.totalAmount)
+                }else{
+                    return (accumulator)
+                }
+            }, 0)
+        totalBookedTransaction = transactionList.reduce((accumulator, currentValue) => {
+            if(currentValue.dataValues.status == "BOOKED"){
+                return (accumulator + 1)
+            }else{
+                return (accumulator)
+            }
+        }, 0)
+        totalNotPaidTransaction = transactionList.reduce((accumulator, currentValue) => {
+            if(currentValue.dataValues.status == "NOT PAID"){
+                return (accumulator + 1)
+            }else{
+                return (accumulator)
+            }
+        }, 0)
+    }
+
+
+    return res.status(200).json({
+        result: {
+            totalPayment,
+            totalBookedTransaction,
+            totalNotPaidTransaction,
+            totalproduct,
+            totalTransaction
+        },
+        success: true,
+        errorMessage: null
+    })
+});
+
 /**
  * @route GET api/app/transaction/detail
  * @desc Get transaction detail
@@ -240,10 +326,6 @@ router.get('/manualTransactionList', passport.authenticate('jwt', {
     for (const trx of transactions) {
         let product = await Product.findByPk(trx.productId);
 
-        // TODO: Should do this process in frontend instead
-        let transactionTime = new Date(trx.createdAt);
-        let localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
-
         transactionsResult.push(
             {
                 id: trx.id,
@@ -261,7 +343,7 @@ router.get('/manualTransactionList', passport.authenticate('jwt', {
                     warehouseType: product.warehouseType,
                     price: product.price
                 },
-                transactionTime: localTransactionTime
+                transactionTime: trx.updatedAt
             }
         )
     }
@@ -353,20 +435,16 @@ router.get('/list', passport.authenticate('jwt', {
         page = (page - 1) * limit; 
     }
 
+    let order = [['updatedAt', 'desc']]
     const transactions = await Transaction.findAll(
         {
-            where: whereQuery, offset: page, limit: limit
+            where: whereQuery, offset: page, limit: limit, order: order
         }
     );
     const transactionsResult = [];
 
     for (const trx of transactions) {
         let product = await Product.findByPk(trx.productId);
-
-        // TODO: Should do this process in frontend instead
-        let transactionTime = new Date(trx.createdAt);
-        let localTransactionTime = new Date(transactionTime.getTime() + (7 * 60 * 60 * 1000)); // Hackily convert to +7 timezone
-
         let paymentList = {};
         if ( trx != null) {
             paymentList = await Payment.findAll(
@@ -401,7 +479,7 @@ router.get('/list', passport.authenticate('jwt', {
                 arrImages : arrImages,
                 arrAdditional_facility : arrAdditional_facility
             },
-            transactionTime: localTransactionTime
+            transactionTime: trx.updatedAt
         }
         if(paymentList.length > 0){
             dataResult.paymentId = paymentList[0].dataValues.id

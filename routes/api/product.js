@@ -190,14 +190,16 @@ router.get('/listAll', async (req, res) => {
     const sort = req.query.sort;
     let whereQuery = {};
     let order = [];
+    const { Op } = require("sequelize");
     for(var i = 0; i < filter.length; i++){
-        if(filter[i] != "page" && filter[i] != "limit" && filter[i] != "sort" && filter[i] != "facility"){
+        if(filter[i] != "page" && filter[i] != "limit" && filter[i] != "sort" && filter[i] != "facility" && filter[i] != "rating"){
+            whereQuery[filter[i]] = {
+                [Op.like]: `%${query[filter[i]]}%`
+            }
+        }else if(filter[i] == "rating"){
             whereQuery[filter[i]] = query[filter[i]]
         }
     }
-
-    whereQuery['deleted'] = false;
-    
 
     if(sort == "PriceHighToLow"){
         order.push(['price', 'desc'])
@@ -219,7 +221,7 @@ router.get('/listAll', async (req, res) => {
         page = (page - 1) * limit; 
     }
     try{
-        const productList = await Product.findAll({
+        const result = await Product.findAll({
             where: whereQuery, offset: page, limit: limit, order: order
         });
         
@@ -231,6 +233,11 @@ router.get('/listAll', async (req, res) => {
         if(limit){
             totalPage = Math.ceil(totalProduct/limit)
         }
+        const productList = result.map(product => {
+            let arrImages = JSON.parse(product.dataValues.images)    
+            let arrAdditional_facility = JSON.parse(product.dataValues.additional_facility)
+            return {...product.dataValues, arrImages, arrAdditional_facility}
+        })
         return res.status(200).json({
             result: {
                 products: productList,
@@ -240,6 +247,7 @@ router.get('/listAll', async (req, res) => {
             errorMessage: null
         });
     }catch(e){
+        console.log(e)
         return res.status(403).json({
             result: null,
             success: false,
