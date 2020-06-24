@@ -5,7 +5,7 @@ const UserReviews = require('../../models').UserReviews;
 const UserWhistlists = require('../../models').UserWhistlists;
 const City = require('../../models').City;
 const passport = require('passport');
-
+const User = require('../../models').User;
 /**
  * @route GET api/app/product/detail
  * @desc Get product detail
@@ -33,15 +33,22 @@ router.get('/detail', async (req, res) => {
         })
     }
 
+    const user = await User.findByPk(product.ownerId);
+
     let userReviewCount = await UserReviews.count({
         where : {
             productId: productId
         }
     });
 
+
+    let arrImages = JSON.parse(product.images)    
+    let arrAdditional_facility = JSON.parse(product.additional_facility)
     return res.status(200).json({
         result: {
             id: product.id,
+            ownerPhone: user.phoneNo,
+            ownerName: user.fullName,
             name: product.name,
             description: product.description,
             city: product.city,
@@ -61,7 +68,9 @@ router.get('/detail', async (req, res) => {
             pdam: product.pdam,
             additional_facility: product.additional_facility,
             rating: product.rating,
-            totalReview : userReviewCount
+            totalReview : userReviewCount,
+            arrImages : arrImages,
+            arrAdditional_facility : arrAdditional_facility
         },
         
         success: true,
