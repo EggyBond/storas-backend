@@ -322,7 +322,7 @@ router.get('/list', passport.authenticate('jwt', {
     let whereQuery = {};
 
     for(var i = 0; i < filter.length; i++){
-        if(filter[i] != "page"){
+        if(filter[i] != "page" && filter[i] != "status"){
             whereQuery[filter[i]] = query[filter[i]]
         }
     }
@@ -339,7 +339,13 @@ router.get('/list', passport.authenticate('jwt', {
             break;
     }
     const { Op } = require("sequelize");
-    whereQuery["status"] = { [Op.not]: 'MANUAL'}
+
+    if(req.query.status){
+        whereQuery["status"] = { [Op.not]: 'MANUAL', [Op.eq] : req.query.status}
+    }else{
+        whereQuery["status"] = { [Op.not]: 'MANUAL'}
+    }
+    
     const transactions = await Transaction.findAll(
         {
             where: whereQuery
