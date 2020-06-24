@@ -100,7 +100,7 @@ router.get('/list', passport.authenticate('jwt', {
 });
 
 router.get('/listAll', async (req, res) => {
-    const page = req.query.page;
+    let page = req.query.page;
     const filter = Object.keys(req.query);
     const query = req.query;
     const sort = req.query.sort;
@@ -131,7 +131,8 @@ router.get('/listAll', async (req, res) => {
 
     let limit = undefined
     if(page !== undefined){
-        limit = 2;
+        limit = 10;
+        page = (page - 1) * limit; 
     }
     try{
         const productList = await Product.findAll({
@@ -145,8 +146,6 @@ router.get('/listAll', async (req, res) => {
         var totalPage = 1
         if(limit){
             totalPage = Math.ceil(totalProduct/limit)
-            console.log(totalProduct)
-            console.log(limit)
         }
         return res.status(200).json({
             result: {
