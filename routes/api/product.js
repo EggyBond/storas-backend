@@ -233,11 +233,26 @@ router.get('/listAll', async (req, res) => {
         if(limit){
             totalPage = Math.ceil(totalProduct/limit)
         }
-        const productList = result.map(product => {
+        const resultList = result.map(product => {
             let arrImages = JSON.parse(product.dataValues.images)    
             let arrAdditional_facility = JSON.parse(product.dataValues.additional_facility)
             return {...product.dataValues, arrImages, arrAdditional_facility}
         })
+
+        let productList = resultList;
+        // if(req.query.additional_facility){
+        //     let param_additional_facility = req.query.additional_facility;
+        //     productList = resultList.filter(e=>{
+        //         let filtered = true;
+        //         let additional_facility = JSON.parse(e.dataValues.additional_facility)
+        //         for (var i = 0 ; i < param_additional_facility.length; i ++){
+        //             if(!additional_facility.includes(param_additional_facility[i])){
+        //                 filtered = false;
+        //             }
+        //         }
+        //         return filtered
+        //     })
+        // }
         return res.status(200).json({
             result: {
                 products: productList,
@@ -739,30 +754,12 @@ router.get('/wishlist', passport.authenticate('jwt', {
     try{
         let whereQuery = {};
         let order = [];
-        for(var i = 0; i < filter.length; i++){
-            if(filter[i] != "page" && filter[i] != "limit" && filter[i] != "sort" && filter[i] != "facility"){
-                whereQuery[filter[i]] = query[filter[i]]
-            }
-        }
+        console.log(wishlistId)
         whereQuery['deleted'] = false;
         whereQuery['id'] = wishlistId
-
-        if(sort == "PriceHighToLow"){
-            order.push(['price', 'desc'])
-        }else if(sort == "PriceLowToHigh"){
-            order.push(['price', 'asc'])
-        }else if(sort == "Newest"){
-            order.push(['createdAt', 'desc'])
-        }else if(sort == "AscOrder"){
-            order.push(['name', 'asc'])
-        }else if(sort == "DescOrder"){
-            order.push(['name', 'desc'])
-        }else if(sort == "Rating"){
-            order.push(['rating', 'desc'])
-        }
         
         const productList = await Product.findAll({
-            where: whereQuery, offset: page, limit: limit, order: order
+            where: whereQuery, order: order
         });
     
         return res.status(200).json({
