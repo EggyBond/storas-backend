@@ -200,7 +200,8 @@ router.get('/listAll', async (req, res) => {
             whereQuery[filter[i]] = query[filter[i]]
         }
     }
-
+    whereQuery['deleted'] = false;
+    
     if(sort == "PriceHighToLow"){
         order.push(['price', 'desc'])
     }else if(sort == "PriceLowToHigh"){
